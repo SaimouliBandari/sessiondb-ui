@@ -35,6 +35,7 @@ Development: http://localhost:3000/v1
   "success": true,
   "data": {
     "token": "jwt_token_here",
+    "refresh_token": "refresh_token_here",
     "user": {
       "id": "1",
       "name": "admin_mouli",
@@ -155,19 +156,6 @@ Development: http://localhost:3000/v1
 ```
 
 **Response**: Returns the created `User` object with generated `id`.
-
-### Get Current User
-**Endpoint**: `GET /users/me`
-
-**Response**:
-```json
-{
-  "id": "1",
-  "name": "admin_mouli",
-  "role": "Super Admin",
-  ... // Full User object
-}
-```
 
 ### Update User
 **Endpoint**: `PUT /users/:id`
@@ -498,5 +486,132 @@ interface AuditLog {
     table?: string;
     query?: string;
     status: 'Success' | 'Failure' | 'Warning';
+}
+```
+
+---
+
+## 8. Database Instance Management
+
+### List Instances (User)
+**Endpoint**: `GET /instances`
+**Response**: `Array<DBInstance>` (excludes credentials)
+```json
+[{ "id": "prod-1", "name": "Production", "host": "prod.db.com", "port": 3306, "type": "mysql", "status": "online" }]
+```
+
+### List Instances (Admin)
+**Endpoint**: `GET /admin/instances`
+**Response**: `Array<DBInstance>` (includes metadata)
+```json
+[{ "id": "prod-1", "name": "Production", "host": "prod.db.com", "port": 3306, "username": "admin", "lastSync": "2024-02-08 12:00" }]
+```
+
+### Create Instance
+**Endpoint**: `POST /admin/instances`
+**Request**: `{ name, host, port, type, username, password }`
+**Response**: `{ success: true, data: DBInstance }`
+
+### Update Instance
+**Endpoint**: `PUT /admin/instances/:id`
+**Request**: Partial update fields.
+**Response**: `{ success: true, data: DBInstance }`
+
+### Sync Instance
+**Endpoint**: `POST /admin/instances/sync/:id`
+**Response**: `{ success: true, message: "Sync started" }`
+
+---
+
+## 9. Real-time Notifications
+
+### Sync Progress (WebSocket)
+**Endpoint**: `GET /ws`
+**Description**: Connect to this endpoint via WebSocket to receive real-time sync progress updates.
+**Message Format**:
+```json
+{
+  "instanceId": "uuid",
+  "step": "Tables",
+  "status": "processing",
+  "percentage": 45,
+  "message": "Fetching metadata for table 'users'..."
+}
+```
+---
+
+## 10. Metadata Retrieval
+
+### List Databases
+**Endpoint**: `GET /instances/:id/databases`
+**Description**: Returns a list of all synced databases for a specific instance.
+
+**Response**:
+```json
+["production", "analytics", "staging"]
+```
+
+### List Tables
+**Endpoint**: `GET /instances/:id/databases/:dbName/tables`
+**Description**: Returns all tables within a specific database on an instance.
+
+**Response**:
+```json
+[
+  {
+    "id": "table-uuid",
+    "instanceId": "instance-uuid",
+    "database": "production",
+    "schema": "public",
+    "name": "users",
+    "type": "BASE TABLE"
+  }
+]
+```
+
+### Get Table Details
+**Endpoint**: `GET /instances/tables/:tableId`
+**Description**: Returns detailed metadata for a table, including all columns.
+
+**Response**:
+```json
+{
+  "id": "table-uuid",
+  "name": "users",
+  "database": "production",
+  "schema": "public",
+  "columns": [
+    {
+      "id": "col-uuid",
+      "name": "id",
+      "dataType": "uuid",
+      "isNullable": false,
+      "isPrimaryKey": true
+    }
+  ]
+}
+```
+### Get Instance Schema (Hierarchical)
+**Endpoint**: `GET /instances/:id/schema` or `GET /schema?instanceId=:id`
+**Description**: Returns all databases, their tables, and columns in a single hierarchical JSON. Use this for the Schema Explorer.
+
+**Response**:
+```json
+{
+  "instanceId": "uuid",
+  "databases": [
+    {
+      "database": "production",
+      "tables": [
+        {
+          "id": "uuid",
+          "name": "users",
+          "database": "production",
+          "schema": "public",
+          "columns": [ ... ]
+        }
+      ]
+    }
+  ]
 }
 ```

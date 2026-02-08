@@ -87,7 +87,7 @@ const Approvals: React.FC = () => {
 
             {!isLoading && !isError && (
                 <div className={styles.requestGrid}>
-                    {pendingRequests.map(req => (
+                    {pendingRequests.map((req: any) => (
                         <div key={req.id} className={`${styles.requestCard} ${expandedId === req.id ? styles.activeCard : ''}`}>
                             <div className={styles.reqMain} onClick={() => handleToggleExpand(req.id, req)}>
                                 <div className={styles.reqHeader}>
@@ -126,7 +126,7 @@ const Approvals: React.FC = () => {
                                             <span>Select partitions to grant access (Partial Approval)</span>
                                         </div>
                                         <div className={styles.permsListDetail}>
-                                            {req.requestedPermissions.map((perm, pIdx) => (
+                                            {req.requestedPermissions.map((perm: any, pIdx: number) => (
                                                 <div key={pIdx} className={styles.permSelectItem}>
                                                     <input
                                                         type="checkbox"

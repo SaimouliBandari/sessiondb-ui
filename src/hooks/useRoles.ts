@@ -4,9 +4,14 @@ import apiClient from '../api/client';
 export interface Role {
     id: string;
     name: string;
-    permissions: any[]; // Using any[] for now, can perform exact type later
-    userCount: number;
+    description?: string;
+    isSystemRole?: boolean;
+    permissions: any[];
+    userCount?: number;
+    createdAt?: string;
+    updatedAt?: string;
 }
+
 
 export const useRoles = () => {
     return useQuery({

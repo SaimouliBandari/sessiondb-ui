@@ -46,7 +46,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({ user, onClose }) => {
                         <div className={styles.detailSection}>
                             <label><Shield size={14} /> Assigned Role</label>
                             <div className={styles.roleDisplayBig}>
-                                <strong>{user.role}</strong>
+                                <strong>{typeof user.role === 'string' ? user.role : user.role?.name || 'No Role'}</strong>
                                 <span>{user.isSessionBased ? 'Session-Based Access' : 'Permanent Identity'}</span>
                             </div>
                         </div>
@@ -55,7 +55,7 @@ const UserDetails: React.FC<UserDetailsProps> = ({ user, onClose }) => {
                             <label><Terminal size={14} /> Recent Queries (Top 5)</label>
                             <div className={styles.recentQueriesList}>
                                 {recentQueries.length > 0 ? (
-                                    recentQueries.map(q => (
+                                    recentQueries.map((q: any) => (
                                         <div key={q.id} className={styles.queryMiniEntry}>
                                             <div className={styles.queryMetaMini}>
                                                 <span className={styles.queryTime}>{q.timestamp}</span>

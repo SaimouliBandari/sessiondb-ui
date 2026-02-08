@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { X, Shield, Search, Database, Table, ChevronDown, ChevronRight } from 'lucide-react';
-import { User, DBPermission } from '../../context/AuthContext'; // Or share DBPermission interface properly
+import { User, DBPermission } from '../../context/AuthContext';
 import { useSchema } from '../../hooks/useSchema';
-import { useRoles } from '../../hooks/useRoles';
+import { useRoles, Role } from '../../hooks/useRoles';
 import styles from './Admin.module.css';
+import { useInstance } from '../../context/InstanceContext';
 
 interface UserModalProps {
     user?: User;
@@ -12,15 +13,23 @@ interface UserModalProps {
 }
 
 const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
-    const { data: schema = {} } = useSchema();
-    const { data: roles = [] } = useRoles();
+    const { currentInstanceId } = useInstance();
+    const { data: schema } = useSchema(currentInstanceId);
+
+    const { data: roles = [], isLoading: rolesLoading } = useRoles();
+
+    console.log('Roles data:', roles);
+
     const [name, setName] = useState(user?.name || '');
-    const [role, setRole] = useState(user?.role || 'Developer');
+    const initialRole = typeof user?.role === 'string' ? user?.role : user?.role?.name || 'Developer';
+    const [role, setRole] = useState(initialRole);
     const [dbUsername, setDbUsername] = useState(user?.db_username || '');
     const [isSessionBased, setIsSessionBased] = useState(user?.isSessionBased || false);
     const [permissions, setPermissions] = useState<DBPermission[]>(user?.permissions || []);
     const [searchQuery, setSearchQuery] = useState('');
-    const [expandedDBs, setExpandedDBs] = useState<string[]>(Object.keys(schema).slice(0, 1));
+    const [expandedDBs, setExpandedDBs] = useState<string[]>(schema?.databases?.slice(0, 1).map(db => db.database) || []);
+
+
 
     const toggleDB = (db: string) => {
         setExpandedDBs(prev => prev.includes(db) ? prev.filter(d => d !== db) : [...prev, db]);
@@ -38,29 +47,33 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
         }
     };
 
-    const toggleAllTablesInDB = (db: string) => {
-        const tables = schema[db] || [];
-        const allSelected = tables.every(t => isTableSelected(db, t));
+    const toggleAllTablesInDB = (dbName: string) => {
+        const database = schema?.databases?.find(d => d.database === dbName);
+        const tables = database?.tables || [];
+        console.log(tables);
+        const allSelected = tables.every((t: any) => isTableSelected(dbName, t.name));
 
         if (allSelected) {
             // Deselect all
-            setPermissions(prev => prev.filter(p => p.database !== db));
+            setPermissions(prev => prev.filter(p => p.database !== dbName));
         } else {
             // Select all (only those not already selected)
             const newPerms = tables
-                .filter(t => !isTableSelected(db, t))
-                .map(t => ({ database: db, table: t, privileges: ['READ'], type: 'permanent' as const }));
+                .filter((t: any) => !isTableSelected(dbName, t.name))
+                .map((t: any) => ({ database: dbName, table: t.name, privileges: ['READ'] as ('READ' | 'WRITE' | 'DELETE' | 'EXECUTE')[], type: 'permanent' as const }));
+
             setPermissions(prev => [...prev, ...newPerms]);
         }
     };
 
     const handleRoleChange = (newRoleName: string) => {
         setRole(newRoleName);
-        const selectedRole = roles.find(r => r.name === newRoleName);
+        const selectedRole = roles.find((r: Role) => r.name === newRoleName);
         if (selectedRole) {
             setPermissions(selectedRole.permissions);
         }
     };
+
 
     const updatePermissionPrivileges = (db: string, table: string, privilege: string) => {
         setPermissions(prev => prev.map(p => {
@@ -101,21 +114,29 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
             status: user?.status || 'active',
             isSessionBased,
             lastLogin: user?.lastLogin || 'Never',
-            permissions
+            permissions,
+            savedScripts: user?.savedScripts || [],
+            queryTabs: user?.queryTabs || []
         };
         onSave(newUser);
     };
 
-    const filteredSchema = Object.entries(schema).reduce((acc, [db, tables]) => {
-        const matchedTables = (tables as string[]).filter(t =>
-            db.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            t.toLowerCase().includes(searchQuery.toLowerCase())
-        );
-        if (matchedTables.length > 0 || db.toLowerCase().includes(searchQuery.toLowerCase())) {
-            acc[db] = tables as string[];
-        }
-        return acc;
-    }, {} as Record<string, string[]>);
+    const filteredDatabases = schema?.databases?.map(db => {
+        const matchedTables = db.tables?.filter(t =>
+            db.database?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            t.name?.toLowerCase().includes(searchQuery.toLowerCase())
+        ) || [];
+        return {
+            ...db,
+            tables: matchedTables.length > 0 || db.database?.toLowerCase().includes(searchQuery.toLowerCase())
+                ? db.tables
+                : matchedTables
+        };
+    }).filter(db =>
+        db.database?.toLowerCase().includes(searchQuery.toLowerCase()) || db.tables.length > 0
+    ) || [];
+
+
 
     return (
         <div className={styles.modalOverlay}>
@@ -144,10 +165,19 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
                             </div>
                             <div className={styles.formGroup}>
                                 <label>Primary Role</label>
-                                <select value={role} onChange={(e) => handleRoleChange(e.target.value)}>
-                                    {roles.map(r => (
-                                        <option key={r.id} value={r.name}>{r.name}</option>
-                                    ))}
+                                <select value={role} onChange={(e) => handleRoleChange(e.target.value)} disabled={rolesLoading}>
+                                    {rolesLoading ? (
+                                        <option>Loading roles...</option>
+                                    ) : roles.length === 0 ? (
+                                        <option>No roles available</option>
+                                    ) : (
+                                        <>
+                                            <option value="">Select a role...</option>
+                                            {roles.map((r: Role) => (
+                                                <option key={r.id} value={r.name}>{r.name}</option>
+                                            ))}
+                                        </>
+                                    )}
                                 </select>
                             </div>
                             <div className={styles.formGroup} style={{ justifyContent: 'center' }}>
@@ -175,32 +205,32 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
                             </div>
 
                             <div className={styles.schemaList}>
-                                {Object.entries(filteredSchema).map(([db, tables]) => (
-                                    <div key={db} className={styles.dbGroup}>
+                                {filteredDatabases.map((db: any) => (
+                                    <div key={db.database} className={styles.dbGroup}>
                                         <div className={styles.dbHeader}>
-                                            <div className={styles.dbTitle} onClick={() => toggleDB(db)}>
-                                                {expandedDBs.includes(db) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                            <div className={styles.dbTitle} onClick={() => toggleDB(db.database)}>
+                                                {expandedDBs.includes(db.database) ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
                                                 <Database size={14} />
-                                                <span>{db}</span>
+                                                <span>{db.database}</span>
                                             </div>
                                             <button
                                                 className={styles.selectAllBtn}
-                                                onClick={() => toggleAllTablesInDB(db)}
+                                                onClick={() => toggleAllTablesInDB(db.database)}
                                             >
-                                                {schema[db].every(t => isTableSelected(db, t)) ? 'Deselect All' : 'Select All'}
+                                                {db.tables.every((t: any) => isTableSelected(db.database, t.name)) ? 'Deselect All' : 'Select All'}
                                             </button>
                                         </div>
-                                        {expandedDBs.includes(db) && (
+                                        {expandedDBs.includes(db.database) && (
                                             <div className={styles.tableList}>
-                                                {tables.map(table => (
+                                                {db.tables.map((table: any) => (
                                                     <div
-                                                        key={table}
-                                                        className={`${styles.tableItem} ${isTableSelected(db, table) ? styles.selected : ''}`}
-                                                        onClick={() => toggleTable(db, table)}
+                                                        key={table.id}
+                                                        className={`${styles.tableItem} ${isTableSelected(db.database, table.name) ? styles.selected : ''}`}
+                                                        onClick={() => toggleTable(db.database, table.name)}
                                                     >
-                                                        <input type="checkbox" checked={isTableSelected(db, table)} readOnly />
+                                                        <input type="checkbox" checked={isTableSelected(db.database, table.name)} readOnly />
                                                         <Table size={12} />
-                                                        <span>{table}</span>
+                                                        <span>{table.name}</span>
                                                     </div>
                                                 ))}
                                             </div>
@@ -223,7 +253,7 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
                                         <div className={styles.privsRowMini}>
                                             {['READ', 'WRITE', 'DELETE', 'EXECUTE'].map(p => (
                                                 <button
-                                                    key={p}
+                                                    key={`${perm.database}-${perm.table}-${p}`}
                                                     className={perm.privileges.includes(p) ? styles.privBtnActive : styles.privBtn}
                                                     onClick={() => updatePermissionPrivileges(perm.database, perm.table, p)}
                                                 >
