@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { UserPlus, Search, Edit2, Shield, Trash2, Key, Eye, Lock } from 'lucide-react';
+import { Role } from '../../hooks/useRoles';
 
 import { useUsers, useCreateUser, useUpdateUser, useDeleteUser } from '../../hooks/useUsers';
 import { useAuthConfig, useUpdateAuthConfig } from '../../hooks/useAuthConfig';
@@ -23,10 +24,11 @@ const UserManagement: React.FC = () => {
     const [selectedUserForDetails, setSelectedUserForDetails] = useState<User | undefined>(undefined);
     const [activeTab, setActiveTab] = useState<'users' | 'settings'>('users');
 
-    const filteredUsers = users.filter((u: User) =>
-        (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
-        (u.role || '').toLowerCase().includes(search.toLowerCase())
-    );
+    const filteredUsers = users.filter((u: User) => {
+        const roleName = typeof u.role === 'string' ? u.role : u.role?.name || '';
+        return (u.name || '').toLowerCase().includes(search.toLowerCase()) ||
+            roleName.toLowerCase().includes(search.toLowerCase());
+    });
 
     const handleOpenCreate = () => {
         setEditingUser(undefined);
@@ -132,7 +134,7 @@ const UserManagement: React.FC = () => {
                                             <td>
                                                 <div className={styles.roleTag}>
                                                     <Shield size={14} />
-                                                    {user.role}
+                                                    {typeof user.role === 'string' ? user.role : user.role?.name || 'No Role'}
                                                 </div>
                                             </td>
                                             <td>

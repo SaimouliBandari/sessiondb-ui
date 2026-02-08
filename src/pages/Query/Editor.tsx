@@ -15,7 +15,8 @@ const SQLQueryEditor: React.FC = () => {
     const { data: tabs = [], isLoading: tabsLoading } = useQueryTabs();
     const { mutate: updateTabs } = useUpdateTabs();
     const { mutate: executeQuery, isPending: isExecuting } = useExecuteQuery(currentInstanceId);
-    const { data: schemaData = [], isLoading: schemaLoading, refetch: refetchSchema, isRefetching: isRefetchingSchema } = useSchema(currentInstanceId);
+    const { data: schemaData, isLoading: schemaLoading, refetch: refetchSchema, isRefetching: isRefetchingSchema } = useSchema(currentInstanceId);
+
 
     // Internal Sidebars Toggle State - Defaulting to collapsed as requested
     const [explorerCollapsed, setExplorerCollapsed] = useState(true);
@@ -154,26 +155,26 @@ const SQLQueryEditor: React.FC = () => {
                         </div>
                         <div className={styles.schemaList}>
                             {schemaLoading && <div className={styles.loadingItem}>Loading schema...</div>}
-                            {schemaData && Array.isArray(schemaData) && schemaData.map((db: any) => (
-                                <details key={db.database_name} className={styles.schemaItem} open>
+                            {schemaData?.databases?.map((db: any) => (
+                                <details key={db.database} className={styles.schemaItem} open>
                                     <summary>
                                         <ChevronRight size={14} className={styles.toggleIcon} />
                                         <Database size={14} />
-                                        <span>{db.database_name}</span>
+                                        <span>{db.database}</span>
                                     </summary>
                                     <div style={{ marginLeft: '12px' }}>
                                         {db.tables?.map((table: any) => (
-                                            <details key={table.table_name} className={styles.schemaItem}>
+                                            <details key={table.id} className={styles.schemaItem}>
                                                 <summary>
                                                     <ChevronRight size={14} className={styles.toggleIcon} />
                                                     <Table size={14} />
-                                                    <span>{table.table_name}</span>
+                                                    <span>{table.name}</span>
                                                 </summary>
                                                 <ul className={styles.columnList}>
                                                     {table.columns?.map((col: any) => (
-                                                        <li key={typeof col === 'string' ? col : col.name}>
-                                                            {typeof col === 'string' ? col : col.name}
-                                                            {col.type && <span className={styles.colType}>{col.type}</span>}
+                                                        <li key={col.id}>
+                                                            {col.name}
+                                                            {col.dataType && <span className={styles.colType}>{col.dataType}</span>}
                                                         </li>
                                                     ))}
                                                 </ul>
@@ -182,9 +183,11 @@ const SQLQueryEditor: React.FC = () => {
                                     </div>
                                 </details>
                             ))}
-                            {!schemaLoading && (!schemaData || schemaData.length === 0) && (
+
+                            {!schemaLoading && (!schemaData || !schemaData.databases || schemaData.databases.length === 0) && (
                                 <div className={styles.emptyState}>No databases found.</div>
                             )}
+
                         </div>
                     </>
                 )}

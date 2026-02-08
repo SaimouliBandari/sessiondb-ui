@@ -1,31 +1,42 @@
 import { useQuery } from '@tanstack/react-query';
 import apiClient from '../api/client';
 
-export interface DatabaseSchema {
-    // Define schema interfaces based on what's needed for the tree view
-    database_name: string;
-    tables: {
-        table_name: string;
-        columns: { name: string; type: string; }[];
-    }[];
+export interface SchemaColumn {
+    id: string;
+    name: string;
+    dataType: string;
+    isNullable: boolean;
+    isPrimaryKey: boolean;
 }
 
-// Since useMockState just had a 'schema' object which was a list of strings or objects, 
-// we'll assume the API returns a structured schema.
-// For now, let's type it loosely or match the mock if possible.
-// MockState schema was: { [db: string]: { [table: string]: string[] } } or similar?
-// Let's assume API returns a standard schema structure.
+export interface SchemaTable {
+    id: string;
+    name: string;
+    columns: SchemaColumn[];
+}
+
+export interface SchemaDatabase {
+    database: string;  // API uses 'database' not 'name'
+    tables: SchemaTable[];
+}
+
+export interface HierarchicalSchema {
+    instanceId: string;
+    databases: SchemaDatabase[];
+}
+
 
 export const useSchema = (instanceId?: string | null) => {
-    return useQuery({
+    return useQuery<HierarchicalSchema | null>({
         queryKey: ['schema', instanceId],
         queryFn: async () => {
-            if (!instanceId) return [];
-            const res = await apiClient.get('/schema', { params: { instanceId } });
-            // Schema is likely an object { db: [tables] }
+            if (!instanceId) return null;
+            const res = await apiClient.get(`/instances/${instanceId}/schema`);
             return res.data.data || res.data;
         },
         enabled: !!instanceId,
-        initialData: [] // Fallback
+        staleTime: Infinity,
+        gcTime: Infinity,
     });
 };
+
