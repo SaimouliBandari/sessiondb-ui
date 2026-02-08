@@ -17,7 +17,7 @@
 }
 
 .pageSubtitle {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-size: 14px;
     margin: 0;
 }
@@ -33,20 +33,20 @@
     align-items: center;
     gap: 12px;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-subtle);
     padding: 8px 16px;
     border-radius: 12px;
     width: 350px;
 }
 
 .searchIcon {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .searchBox input {
     background: none;
     border: none;
-    color: var(--text-primary);
+    color: var(--text-main);
     outline: none;
     width: 100%;
     font-size: 14px;
@@ -63,14 +63,14 @@
     padding: 16px;
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-secondary);
-    border-bottom: 1px solid var(--border-color);
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-subtle);
     background: rgba(255, 255, 255, 0.02);
 }
 
 .table td {
     padding: 16px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-subtle);
     font-size: 14px;
 }
 
@@ -84,7 +84,7 @@
     width: 32px;
     height: 32px;
     border-radius: 50%;
-    background: var(--accent-primary);
+    background: var(--primary);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -98,7 +98,7 @@
     align-items: center;
     gap: 6px;
     background: rgba(0, 122, 255, 0.1);
-    color: var(--accent-primary);
+    color: var(--primary);
     padding: 4px 10px;
     border-radius: 8px;
     font-size: 12px;
@@ -114,16 +114,16 @@
 
 .permBadge {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-subtle);
     padding: 2px 8px;
     border-radius: 6px;
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .moreBadge {
     font-size: 12px;
-    color: var(--accent-primary);
+    color: var(--primary);
     font-weight: 700;
     padding: 2px 4px;
 }
@@ -134,7 +134,7 @@
 }
 
 .statusInactive {
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .actions {
@@ -145,7 +145,7 @@
 .iconBtn {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     padding: 8px;
     border-radius: 8px;
     cursor: pointer;
@@ -154,7 +154,7 @@
 
 .iconBtn:hover {
     background: rgba(255, 255, 255, 0.1);
-    color: var(--text-primary);
+    color: var(--text-main);
 }
 
 /* Modal Styles */
@@ -190,7 +190,7 @@
 .closeBtn {
     background: none;
     border: none;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     cursor: pointer;
 }
 
@@ -206,7 +206,7 @@
     background: rgba(255, 255, 255, 0.03);
     padding: 16px;
     border-radius: 12px;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-subtle);
 }
 
 .formGroup {
@@ -217,7 +217,7 @@
     display: block;
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin-bottom: 8px;
 }
 
@@ -231,10 +231,10 @@
 .formGroup select {
     width: 100%;
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-subtle);
     padding: 10px 14px;
     border-radius: 10px;
-    color: var(--text-primary);
+    color: var(--text-main);
     outline: none;
 }
 
@@ -248,7 +248,7 @@
 
 .schemaBrowser {
     background: rgba(0, 0, 0, 0.2);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     display: flex;
     flex-direction: column;
@@ -257,14 +257,14 @@
 
 .browserHeader {
     padding: 12px;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-subtle);
     background: rgba(255, 255, 255, 0.02);
 }
 
 .browserHeader label {
     font-size: 11px;
     text-transform: uppercase;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 700;
     display: block;
     margin-bottom: 8px;
@@ -274,8 +274,8 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-subtle);
     padding: 6px 12px;
     border-radius: 8px;
 }
@@ -283,7 +283,7 @@
 .miniSearch input {
     background: none;
     border: none;
-    color: var(--text-primary);
+    color: var(--text-main);
     font-size: 13px;
     outline: none;
     width: 100%;
@@ -309,7 +309,7 @@
     cursor: pointer;
     transition: all 0.2s;
     font-size: 14px;
-    color: var(--text-primary);
+    color: var(--text-main);
 }
 
 .dbHeader:hover {
@@ -330,21 +330,21 @@
     cursor: pointer;
     transition: all 0.2s;
     font-size: 13px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .tableItem:hover {
     background: rgba(255, 255, 255, 0.03);
-    color: var(--text-primary);
+    color: var(--text-main);
 }
 
 .tableItem.selected {
     background: rgba(0, 122, 255, 0.1);
-    color: var(--accent-primary);
+    color: var(--primary);
 }
 
 .selectedPerms {
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     background: rgba(0, 0, 0, 0.1);
     display: flex;
@@ -356,9 +356,9 @@
     padding: 12px;
     font-size: 11px;
     text-transform: uppercase;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 700;
-    border-bottom: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .permCardsScroll {
@@ -371,8 +371,8 @@
 }
 
 .permissionCardMini {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
+    background: var(--bg-sidebar);
+    border: 1px solid var(--border-subtle);
     border-radius: 10px;
     padding: 12px;
 }
@@ -387,7 +387,7 @@
 .permName {
     font-family: 'JetBrains Mono', monospace;
     font-size: 13px;
-    color: var(--accent-primary);
+    color: var(--primary);
 }
 
 .privsRowMini {
@@ -402,23 +402,23 @@
     font-size: 11px;
     border-radius: 6px;
     cursor: pointer;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-subtle);
     background: rgba(255, 255, 255, 0.03);
-    color: var(--text-secondary);
+    color: var(--text-muted);
     transition: all 0.2s;
     font-weight: 600;
 }
 
 .privBtn:hover {
     background: rgba(255, 255, 255, 0.08);
-    color: var(--text-primary);
-    border-color: var(--accent-primary);
+    color: var(--text-main);
+    border-color: var(--primary);
 }
 
 .privBtnActive {
     background: rgba(0, 122, 255, 0.15);
-    border-color: var(--accent-primary);
-    color: var(--accent-primary);
+    border-color: var(--primary);
+    color: var(--primary);
     font-weight: 700;
     box-shadow: 0 0 10px rgba(0, 122, 255, 0.1);
 }
@@ -431,8 +431,8 @@
 
 .expiryRowMini select {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
     border-radius: 6px;
     padding: 6px 10px;
     font-size: 12px;
@@ -442,8 +442,8 @@
 
 .miniDateInput {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
     border-radius: 6px;
     padding: 6px 10px;
     font-size: 12px;
@@ -457,7 +457,7 @@
     align-items: center;
     justify-content: center;
     height: 100%;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     gap: 12px;
     text-align: center;
     padding: 40px;
@@ -477,9 +477,9 @@
     flex-direction: column;
     gap: 10px;
     position: relative;
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-subtle);
     transition: transform 0.2s, box-shadow 0.2s;
-    background: var(--card-bg);
+    background: var(--bg-card);
     border-radius: 10px;
     min-height: 140px;
 }
@@ -487,7 +487,7 @@
 .compactRoleCard:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
-    border-color: var(--accent-primary);
+    border-color: var(--primary);
 }
 
 .roleHeaderCompact {
@@ -500,7 +500,7 @@
     width: 32px;
     height: 32px;
     background: rgba(99, 102, 241, 0.1);
-    color: var(--accent-primary);
+    color: var(--primary);
     border-radius: 8px;
     display: flex;
     align-items: center;
@@ -510,7 +510,7 @@
 .roleInfoCompact h3 {
     font-size: 0.9rem;
     margin: 0;
-    color: var(--text-primary);
+    color: var(--text-main);
     font-weight: 600;
 }
 
@@ -525,7 +525,7 @@
     align-items: center;
     gap: 3px;
     font-size: 0.7rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .rolePermsCompact {
@@ -540,13 +540,13 @@
     background: rgba(255, 255, 255, 0.05);
     padding: 1px 5px;
     border-radius: 3px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-family: 'JetBrains Mono', monospace;
 }
 
 .morePermTag {
     font-size: 9px;
-    color: var(--accent-primary);
+    color: var(--primary);
     font-weight: 600;
 }
 
@@ -554,7 +554,7 @@
     display: flex;
     justify-content: flex-end;
     gap: 6px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-subtle);
     padding-top: 10px;
 }
 
@@ -566,13 +566,13 @@
     gap: 16px;
     margin-top: 32px;
     padding-top: 16px;
-    border-top: 1px solid var(--border-color);
+    border-top: 1px solid var(--border-subtle);
 }
 
 .pageBtn {
     background: rgba(255, 255, 255, 0.05);
-    border: 1px solid var(--border-color);
-    color: var(--text-primary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-main);
     width: 32px;
     height: 32px;
     display: flex;
@@ -585,7 +585,7 @@
 
 .pageBtn:hover:not(:disabled) {
     background: rgba(255, 255, 255, 0.1);
-    border-color: var(--text-secondary);
+    border-color: var(--text-muted);
 }
 
 .pageBtn:disabled {
@@ -595,7 +595,7 @@
 
 .pageIndicator {
     font-size: 0.85rem;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     font-weight: 500;
 }
 
@@ -607,15 +607,15 @@
 }
 
 .requestCard {
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
     border-radius: 16px;
     overflow: hidden;
     transition: all 0.3s ease;
 }
 
 .activeCard {
-    border-color: var(--accent-primary);
+    border-color: var(--primary);
     box-shadow: 0 8px 32px rgba(0, 122, 255, 0.15);
 }
 
@@ -635,7 +635,7 @@
     width: 44px;
     height: 44px;
     background: rgba(0, 122, 255, 0.1);
-    color: var(--accent-primary);
+    color: var(--primary);
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -645,7 +645,7 @@
 .reqType {
     font-size: 11px;
     font-weight: 800;
-    color: var(--accent-primary);
+    color: var(--primary);
     text-transform: uppercase;
     letter-spacing: 0.05em;
     display: flex;
@@ -655,17 +655,17 @@
 
 .requester {
     font-size: 16px;
-    color: var(--text-primary);
+    color: var(--text-main);
 }
 
 .reqTimestamp {
     margin-left: auto;
     font-size: 12px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .reqDesc {
-    color: var(--text-secondary);
+    color: var(--text-muted);
     margin: 0 0 16px;
     line-height: 1.6;
 }
@@ -683,7 +683,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 .reqDetails {
@@ -692,13 +692,13 @@
 
 .divider {
     height: 1px;
-    background: var(--border-color);
+    background: var(--border-subtle);
     margin-bottom: 24px;
 }
 
 .partialSection {
     background: rgba(255, 255, 255, 0.02);
-    border: 1px solid var(--border-color);
+    border: 1px solid var(--border-subtle);
     border-radius: 12px;
     padding: 20px;
     margin-bottom: 24px;
@@ -740,14 +740,14 @@
 }
 
 .permDisplay code {
-    color: var(--accent-primary);
+    color: var(--primary);
     font-family: 'JetBrains Mono', monospace;
     font-size: 14px;
 }
 
 .permPrivs {
     font-size: 11px;
-    color: var(--text-secondary);
+    color: var(--text-muted);
     background: rgba(255, 255, 255, 0.05);
     padding: 2px 8px;
     border-radius: 4px;
@@ -778,7 +778,7 @@
 }
 
 .approveBtn {
-    background: var(--accent-primary);
+    background: var(--primary);
     color: white;
 }
 
@@ -788,7 +788,7 @@
     align-items: center;
     justify-content: center;
     padding: 80px 0;
-    color: var(--text-secondary);
+    color: var(--text-muted);
 }
 
 /* Tabs & Settings Area */

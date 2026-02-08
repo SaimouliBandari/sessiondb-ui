@@ -7,8 +7,8 @@
 
 .schemaExplorer {
     width: 250px;
-    background: var(--surface);
-    border-right: 1px solid var(--border);
+    background: var(--bg-sidebar);
+    border-right: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
@@ -28,7 +28,7 @@
     justify-content: space-between;
     font-weight: 600;
     font-size: 0.85rem;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .explorerCollapsed .explorerHeader {
@@ -145,7 +145,7 @@
 .tabBar {
     display: flex;
     background: var(--bg-sidebar);
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-subtle);
     padding: 4px 8px 0 8px;
     overflow-x: auto;
     gap: 2px;
@@ -172,8 +172,8 @@
 .activeTab {
     color: var(--primary);
     border-bottom-color: var(--primary);
-    background: var(--surface);
-    font-weight: 500;
+    background: var(--bg-main);
+    font-weight: 600;
 }
 
 .closeTab {
@@ -209,7 +209,7 @@
     gap: 0.75rem;
     background: var(--bg-main);
     padding: 12px 20px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 1px solid var(--border-subtle);
 }
 
 .toolBtn {
@@ -408,12 +408,12 @@
 }
 
 .modal {
-    background: var(--surface);
+    background: var(--gray-3);
     border: 1px solid var(--border);
     border-radius: 12px;
     padding: 24px;
     width: 400px;
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.7);
 }
 
 .modal h3 {
