@@ -6,6 +6,7 @@ import UserManagement from './pages/Admin/Users';
 import RoleManagement from './pages/Admin/Roles';
 import Approvals from './pages/Admin/Approvals';
 import InstanceManagement from './pages/Admin/Instances';
+import Settings from './pages/Admin/Settings';
 import AuditLogs from './pages/Logs/AuditLogs';
 import Login from './pages/Login/Login';
 import { useAuth } from './context/AuthContext';
@@ -25,23 +26,28 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     return <>{children}</>;
 };
 
+import { ThemeProvider } from './context/ThemeContext';
+
 const App: React.FC = () => {
     return (
-        <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
-                <Route index element={<Navigate to="/query" replace />} />
-                <Route path="query" element={<QueryEditor />} />
-                <Route path="admin">
-                    <Route path="users" element={<UserManagement />} />
-                    <Route path="roles" element={<RoleManagement />} />
-                    <Route path="approvals" element={<Approvals />} />
-                    <Route path="instances" element={<InstanceManagement />} />
+        <ThemeProvider>
+            <Routes>
+                <Route path="/login" element={<Login />} />
+                <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
+                    <Route index element={<Navigate to="/query" replace />} />
+                    <Route path="query" element={<QueryEditor />} />
+                    <Route path="admin">
+                        <Route path="users" element={<UserManagement />} />
+                        <Route path="roles" element={<RoleManagement />} />
+                        <Route path="approvals" element={<Approvals />} />
+                        <Route path="instances" element={<InstanceManagement />} />
+                        <Route path="settings" element={<Settings />} />
+                    </Route>
+                    <Route path="logs" element={<AuditLogs />} />
                 </Route>
-                <Route path="logs" element={<AuditLogs />} />
-            </Route>
-            <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+                <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+        </ThemeProvider>
     );
 };
 

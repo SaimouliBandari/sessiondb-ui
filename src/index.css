@@ -49,6 +49,39 @@
   --ease-snappy: cubic-bezier(0.2, 0, 0, 1);
   --duration-fast: 150ms;
   --duration-normal: 250ms;
+
+  /* Amber/Orange Scale (Custom) */
+  --amber-1: #14100d;
+  --amber-2: #1d1713;
+  --amber-3: #2d2015;
+  --amber-4: #3d2511;
+  --amber-5: #4a2e15;
+  --amber-6: #593a1f;
+  --amber-7: #6e492a;
+  --amber-8: #8d5e35;
+  --amber-9: #dd8a3c;
+  --amber-10: #d07e2e;
+  --amber-11: #f2ac70;
+  --amber-12: #fbdfc8;
+}
+
+/* Theme Classes */
+.theme-default {
+  /* Inherits root blue */
+}
+
+.theme-amber {
+  --primary: var(--amber-9);
+  --primary-hover: var(--amber-10);
+  --accent: var(--amber-9);
+
+  /* Optional: Warm up the backgrounds slightly if desired, 
+     or keep neutral grays for contrast. 
+     Let's keep neutral mostly but maybe tint the sidebar slightly? 
+     For now, sticking to primary color swap for safety. */
+
+  /* Selection colors */
+  --selection-color: rgba(221, 138, 60, 0.2);
 }
 
 
