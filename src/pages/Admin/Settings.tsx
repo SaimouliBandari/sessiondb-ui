@@ -73,6 +73,64 @@ const Settings: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Light Theme (Blue) Card */}
+                        <div
+                            className={`${styles.compactRoleCard} ${theme === 'light-blue' ? styles.activeCard : ''}`}
+                            style={{
+                                cursor: 'pointer',
+                                minHeight: 'auto',
+                                borderColor: theme === 'light-blue' ? '#3260e7' : undefined,
+                                background: '#fcfcfd' // Preview bg
+                            }}
+                            onClick={() => setTheme('light-blue')}
+                        >
+                            <div className={styles.roleHeaderCompact}>
+                                <div className={styles.roleIconCompact} style={{ background: '#f9f9fb', border: '1px solid #d8d9e0', color: '#1e1f24' }}>
+                                    <div style={{ width: '12px', height: '12px', background: '#3260e7', borderRadius: '50%' }} />
+                                </div>
+                                <div className={styles.roleInfoCompact}>
+                                    <h3 style={{ color: '#1e1f24' }}>Light (Blue)</h3>
+                                    <div className={styles.roleStatsCompact}>
+                                        <span style={{ color: '#8b8d98' }}>Standard light theme</span>
+                                    </div>
+                                </div>
+                                {theme === 'light-blue' && (
+                                    <div style={{ marginLeft: 'auto', color: '#3260e7' }}>
+                                        <Check size={18} />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Light Theme (Amber) Card */}
+                        <div
+                            className={`${styles.compactRoleCard} ${theme === 'light-amber' ? styles.activeCard : ''}`}
+                            style={{
+                                cursor: 'pointer',
+                                minHeight: 'auto',
+                                borderColor: theme === 'light-amber' ? '#dd8a3c' : undefined,
+                                background: '#fcfcfd'
+                            }}
+                            onClick={() => setTheme('light-amber')}
+                        >
+                            <div className={styles.roleHeaderCompact}>
+                                <div className={styles.roleIconCompact} style={{ background: '#f9f9fb', border: '1px solid #d8d9e0', color: '#1e1f24' }}>
+                                    <div style={{ width: '12px', height: '12px', background: '#dd8a3c', borderRadius: '50%' }} />
+                                </div>
+                                <div className={styles.roleInfoCompact}>
+                                    <h3 style={{ color: '#1e1f24' }}>Light (Amber)</h3>
+                                    <div className={styles.roleStatsCompact}>
+                                        <span style={{ color: '#8b8d98' }}>Warm light theme</span>
+                                    </div>
+                                </div>
+                                {theme === 'light-amber' && (
+                                    <div style={{ marginLeft: 'auto', color: '#dd8a3c' }}>
+                                        <Check size={18} />
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
                     </div>
                 </div>
             </div>

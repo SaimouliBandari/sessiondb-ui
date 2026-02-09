@@ -84,6 +84,114 @@
   --selection-color: rgba(221, 138, 60, 0.2);
 }
 
+.theme-light-blue {
+  /* Cool Gray Neutral Scale (Light Mode) */
+  --gray-1: #fcfcfd;
+  --gray-2: #f9f9fb;
+  --gray-3: #eff0f3;
+  --gray-4: #e7e8ec;
+  --gray-5: #e0e1e6;
+  --gray-6: #d8d9e0;
+  --gray-7: #cdced7;
+  --gray-8: #b9bbc6;
+  --gray-9: #8b8d98;
+  --gray-10: #80828d;
+  --gray-11: #62636c;
+  --gray-12: #1e1f24;
+
+  /* Blue Scale (Light Mode) - extracted from SVG Row 1 */
+  --blue-1: #fdfdfe;
+  --blue-2: #f6f9ff;
+  --blue-3: #ecf2ff;
+  --blue-4: #deeaff;
+  --blue-5: #cddfff;
+  --blue-6: #b9d2ff;
+  --blue-7: #a2bffe;
+  --blue-8: #82a5f6;
+  --blue-9: #3260e7;
+  --blue-10: #2c55cc;
+  --blue-11: #305ad2;
+  --blue-12: #192d60;
+
+  /* Re-map semantic tokens for Light Mode (Blue) */
+  --primary: var(--blue-9);
+  --primary-hover: var(--blue-10);
+
+  /* Backgrounds */
+  --bg-main: var(--gray-1);
+  /* #fcfcfd */
+  --bg-sidebar: var(--gray-2);
+  /* #f9f9fb */
+  --bg-card: #ffffff;
+  /* Pure white */
+
+  /* Text */
+  --text-main: var(--gray-12);
+  /* #1e1f24 */
+  --text-muted: var(--gray-9);
+  /* #8b8d98 */
+
+  /* Borders */
+  --border: var(--gray-6);
+  /* #d8d9e0 */
+  --border-subtle: var(--gray-4);
+  /* #e7e8ec */
+
+  /* UI Elements */
+  --surface: var(--gray-2);
+  /* #f9f9fb */
+  --accent: var(--blue-9);
+
+  /* Selection */
+  --selection-color: rgba(50, 96, 231, 0.15);
+
+  /* Shadow adjustment for light mode */
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.theme-light-amber {
+  /* Inherit Neutral Scale from Light Blue */
+  --gray-1: #fcfcfd;
+  --gray-2: #f9f9fb;
+  --gray-3: #eff0f3;
+  --gray-4: #e7e8ec;
+  --gray-5: #e0e1e6;
+  --gray-6: #d8d9e0;
+  --gray-7: #cdced7;
+  --gray-8: #b9bbc6;
+  --gray-9: #8b8d98;
+  --gray-10: #80828d;
+  --gray-11: #62636c;
+  --gray-12: #1e1f24;
+
+  /* Re-map semantic tokens for Light Mode (Amber) */
+  --primary: var(--amber-9);
+  --primary-hover: var(--amber-10);
+
+  /* Backgrounds */
+  --bg-main: var(--gray-1);
+  --bg-sidebar: var(--gray-2);
+  --bg-card: #ffffff;
+
+  /* Text */
+  --text-main: var(--gray-12);
+  --text-muted: var(--gray-9);
+
+  /* Borders */
+  --border: var(--gray-6);
+  --border-subtle: var(--gray-4);
+
+  /* UI Elements */
+  --surface: var(--gray-2);
+  --accent: var(--amber-9);
+
+  /* Selection */
+  --selection-color: rgba(221, 138, 60, 0.15);
+
+  /* Shadow */
+  --shadow: 0 2px 4px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 
 
 * {

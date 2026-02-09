@@ -20,7 +20,8 @@ const Sidebar: React.FC = () => {
     const { isSidebarCollapsed, setSidebarCollapsed } = useLayout();
     const navigate = useNavigate();
 
-    const handleLogout = () => {
+    const handleLogout = (e: React.MouseEvent) => {
+        e.stopPropagation();
         logout();
         navigate('/login');
     };
@@ -100,7 +101,12 @@ const Sidebar: React.FC = () => {
                 })}
             </nav>
             <div className={styles.footer}>
-                <div className={styles.userProfile}>
+                <div
+                    className={styles.userProfile}
+                    onClick={() => navigate('/admin/settings')}
+                    style={{ cursor: 'pointer' }}
+                    title="Account Settings"
+                >
                     <div className={styles.avatar}>{currentUser?.name?.charAt(0).toUpperCase() || 'U'}</div>
                     <div className={`${styles.userInfo} ${isSidebarCollapsed ? styles.collapsedUserInfo : ''}`}>
                         <span className={styles.userName}>{currentUser.name}</span>
