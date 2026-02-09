@@ -384,6 +384,79 @@ const SQLQueryEditor: React.FC = () => {
                                     quickSuggestions: true,
                                     padding: { top: 10, bottom: 10 }
                                 }}
+                                onMount={(_editor, monaco) => {
+                                    // Dispose of any previous completion providers to prevent duplicates on remount
+                                    // Note: In a real app we might want to track the disposable, but for now this is safe
+                                    // as the component unmounts cleans up nicely usually.
+
+                                    // Register SQL completion provider
+                                    monaco.languages.registerCompletionItemProvider('sql', {
+                                        provideCompletionItems: (model: any, position: any) => {
+                                            const word = model.getWordUntilPosition(position);
+                                            const range = {
+                                                startLineNumber: position.lineNumber,
+                                                endLineNumber: position.lineNumber,
+                                                startColumn: word.startColumn,
+                                                endColumn: word.endColumn
+                                            };
+
+                                            const suggestions: any[] = [];
+
+                                            // 1. SQL Keywords
+                                            const keywords = [
+                                                'SELECT', 'FROM', 'WHERE', 'GROUP BY', 'ORDER BY', 'LIMIT', 'OFFSET',
+                                                'INSERT', 'INTO', 'VALUES', 'UPDATE', 'SET', 'DELETE', 'CREATE', 'TABLE',
+                                                'DROP', 'ALTER', 'INDEX', 'VIEW', 'JOIN', 'INNER', 'LEFT', 'RIGHT', 'OUTER',
+                                                'ON', 'AS', 'DISTINCT', 'COUNT', 'SUM', 'AVG', 'MIN', 'MAX', 'AND', 'OR',
+                                                'NOT', 'NULL', 'IS', 'IN', 'BETWEEN', 'LIKE', 'HAVING', 'CASE', 'WHEN',
+                                                'THEN', 'ELSE', 'END', 'EXISTS', 'UNION', 'ALL', 'PRIMARY', 'KEY', 'FOREIGN',
+                                                'REFERENCES', 'DEFAULT', 'CONSTRAINT', 'CHECK', 'UNIQUE', 'Show', 'describe'
+                                            ];
+
+                                            keywords.forEach(kw => {
+                                                suggestions.push({
+                                                    label: kw,
+                                                    kind: monaco.languages.CompletionItemKind.Keyword,
+                                                    insertText: kw,
+                                                    range: range
+                                                });
+                                            });
+
+                                            // 2. Schema Tables & Columns
+                                            if (schemaData?.databases) {
+                                                schemaData.databases.forEach((db: any) => {
+                                                    if (db.tables) {
+                                                        db.tables.forEach((table: any) => {
+                                                            // Add Table Name
+                                                            suggestions.push({
+                                                                label: table.name,
+                                                                kind: monaco.languages.CompletionItemKind.Class,
+                                                                detail: `Table in ${db.database}`,
+                                                                insertText: table.name,
+                                                                range: range
+                                                            });
+
+                                                            // Add Columns (prefixed with table name for clarity in list, or just col name)
+                                                            if (table.columns) {
+                                                                table.columns.forEach((col: any) => {
+                                                                    suggestions.push({
+                                                                        label: col.name,
+                                                                        kind: monaco.languages.CompletionItemKind.Field,
+                                                                        detail: `${col.dataType} (${table.name})`,
+                                                                        insertText: col.name,
+                                                                        range: range // Standard column name
+                                                                    });
+                                                                });
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            }
+
+                                            return { suggestions: suggestions };
+                                        }
+                                    });
+                                }}
                             />
                         </div>
 
