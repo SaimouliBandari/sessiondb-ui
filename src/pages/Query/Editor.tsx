@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Play, RotateCcw, Save, Search, Table, Database, ChevronRight, X, Plus, FileText, Clock, PanelLeft, PanelRight, AlertTriangle, RefreshCw } from 'lucide-react';
+import { Play, RotateCcw, Save, Search, Table, Database, ChevronRight, X, Plus, FileText, Clock, PanelLeft, PanelRight, AlertTriangle, RefreshCw, Maximize2, Minimize2, ChevronLeft } from 'lucide-react';
 import styles from './Query.module.css';
 import { useLayout } from '../../context/LayoutContext';
 import { useSavedScripts, useSaveScript, useQueryTabs, useUpdateTabs, useExecuteQuery } from '../../hooks/useQueryData';
@@ -21,18 +21,38 @@ const SQLQueryEditor: React.FC = () => {
     // Internal Sidebars Toggle State - Defaulting to collapsed as requested
     const [explorerCollapsed, setExplorerCollapsed] = useState(true);
     const [libraryCollapsed, setLibraryCollapsed] = useState(true);
+    const [isFocusedMode, setIsFocusedMode] = useState(false);
+    const [editorHeight, setEditorHeight] = useState(300);
+    const [isDragging, setIsDragging] = useState(false);
+
+    // Results State
+    const [results, setResults] = useState<any[]>([]);
+    const [queryError, setQueryError] = useState<string | null>(null);
+    const [showAutocomplete, setShowAutocomplete] = useState(false);
+
+    // Local Tabs State for snappy UI
+    const [localTabs, setLocalTabs] = useState<any[]>([]);
+    const [localActiveTabId, setLocalActiveTabId] = useState<string | null>(null);
+
+    // Pagination State
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(15);
+    const pageSizeOptions = [10, 15, 25, 50, 100];
+
+    useEffect(() => {
+        if (tabs.length > 0 && localTabs.length === 0) {
+            setLocalTabs(tabs);
+            const activeId = tabs.find((t: any) => t.isActive)?.id || tabs[0]?.id;
+            setLocalActiveTabId(activeId);
+        }
+    }, [tabs]);
 
     useEffect(() => {
         // Auto-collapse main Sidebar when entering Query mode
         setSidebarCollapsed(true);
     }, [setSidebarCollapsed]);
 
-    const activeTabId = tabs.find((t: any) => t.isActive)?.id || tabs[0]?.id;
-    const activeTab = tabs.find((t: any) => t.id === activeTabId);
-
-    const [results, setResults] = useState<any[]>([]);
-    const [queryError, setQueryError] = useState<string | null>(null);
-    const [showAutocomplete, setShowAutocomplete] = useState(false);
+    const activeTab = localTabs.find((t: any) => t.id === localActiveTabId);
 
     const editorRef = useRef<HTMLTextAreaElement>(null);
 
@@ -42,10 +62,11 @@ const SQLQueryEditor: React.FC = () => {
         if (!activeTab) return;
         setQueryError(null);
         setResults([]);
+        setCurrentPage(1);
 
         executeQuery(activeTab.query, {
             onSuccess: (data) => {
-                setResults(data);
+                setResults(Array.isArray(data) ? data : (data.rows || []));
             },
             onError: (err: any) => {
                 console.error("Query failed:", err);
@@ -55,32 +76,36 @@ const SQLQueryEditor: React.FC = () => {
     };
 
     const handleQueryChange = (val: string) => {
-        if (!activeTabId) return;
-        const updatedTabs = tabs.map((t: any) => t.id === activeTabId ? { ...t, query: val } : t);
-        updateTabs(updatedTabs);
+        if (!localActiveTabId) return;
+        setLocalTabs(prev => prev.map(t => t.id === localActiveTabId ? { ...t, query: val } : t));
+    };
+
+    const handleSyncTabs = () => {
+        updateTabs(localTabs.map(t => ({ ...t, isActive: t.id === localActiveTabId })));
     };
 
     const addTab = () => {
         const newId = Math.random().toString(36).substr(2, 9);
-        const newTab = { id: newId, name: `Untitled ${tabs.length + 1}`, query: '', isActive: true };
-        const updatedTabs = tabs.map((t: any) => ({ ...t, isActive: false })).concat(newTab);
-        updateTabs(updatedTabs);
+        const newTab = { id: newId, name: `Untitled ${localTabs.length + 1}`, query: '', isActive: true };
+        const updatedTabs = localTabs.map((t: any) => ({ ...t, isActive: false })).concat(newTab);
+        setLocalTabs(updatedTabs);
+        setLocalActiveTabId(newId);
     };
 
     const closeTab = (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
-        if (tabs.length === 1) return;
+        if (localTabs.length === 1) return;
 
-        let updatedTabs = tabs.filter((t: any) => t.id !== id);
-        if (id === activeTabId && updatedTabs.length > 0) {
-            updatedTabs[updatedTabs.length - 1].isActive = true;
+        let updatedTabs = localTabs.filter((t: any) => t.id !== id);
+        if (id === localActiveTabId && updatedTabs.length > 0) {
+            setLocalActiveTabId(updatedTabs[updatedTabs.length - 1].id);
         }
-        updateTabs(updatedTabs);
+        setLocalTabs(updatedTabs);
     };
 
-    const setActiveTab = (id: string) => {
-        const updatedTabs = tabs.map((t: any) => ({ ...t, isActive: t.id === id }));
-        updateTabs(updatedTabs);
+    const setActiveTabLocal = (id: string) => {
+        setLocalActiveTabId(id);
+        setLocalTabs(prev => prev.map(t => ({ ...t, isActive: t.id === id })));
     };
 
     const [isSaveModalOpen, setIsSaveModalOpen] = useState(false);
@@ -100,13 +125,63 @@ const SQLQueryEditor: React.FC = () => {
     };
 
     const loadScript = (script: any) => {
-        const newTab = { id: Math.random().toString(36).substr(2, 9), name: script.name, query: script.query, isActive: true };
-        const updatedTabs = tabs.map((t: any) => ({ ...t, isActive: false })).concat(newTab);
-        updateTabs(updatedTabs);
+        const newId = Math.random().toString(36).substr(2, 9);
+        const newTab = { id: newId, name: script.name, query: script.query, isActive: true };
+        const updatedTabs = localTabs.map((t: any) => ({ ...t, isActive: false })).concat(newTab);
+        setLocalTabs(updatedTabs);
+        setLocalActiveTabId(newId);
     };
 
+    const handleTableClick = (db: string, table: string) => {
+        const selectQuery = `SELECT * FROM ${db}.${table} LIMIT 100;`;
+        if (activeTab) {
+            handleQueryChange(selectQuery);
+        } else {
+            const newId = Math.random().toString(36).substr(2, 9);
+            const newTab = { id: newId, name: table, query: selectQuery, isActive: true };
+            const updatedTabs = localTabs.map((t: any) => ({ ...t, isActive: false })).concat(newTab);
+            setLocalTabs(updatedTabs);
+            setLocalActiveTabId(newId);
+        }
+    };
+
+    // Pagination Logic
+    const totalPages = Math.ceil(results.length / pageSize);
+    const paginatedResults = results.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+    // Resize Logic
+    const startDragging = (e: React.MouseEvent) => {
+        setIsDragging(true);
+        e.preventDefault();
+    };
+
+    useEffect(() => {
+        const handleMouseMove = (e: MouseEvent) => {
+            if (!isDragging) return;
+            // Calculate new height based on mouse position relative to the main container
+            // For simplicity, we use e.clientY minus some offset if needed, 
+            // but since it's a top-bottom split, we can just use e.clientY - header_offset
+            const newHeight = Math.max(100, Math.min(window.innerHeight - 200, e.clientY - 64));
+            setEditorHeight(newHeight);
+        };
+
+        const handleMouseUp = () => {
+            setIsDragging(false);
+        };
+
+        if (isDragging) {
+            window.addEventListener('mousemove', handleMouseMove);
+            window.addEventListener('mouseup', handleMouseUp);
+        }
+
+        return () => {
+            window.removeEventListener('mousemove', handleMouseMove);
+            window.removeEventListener('mouseup', handleMouseUp);
+        };
+    }, [isDragging]);
+
     return (
-        <div className={styles.queryPage}>
+        <div className={`${styles.queryPage} ${isFocusedMode ? styles.focusedMode : ''} ${isDragging ? styles.noSelect : ''}`}>
             {isSaveModalOpen && (
                 <div className={styles.modalOverlay}>
                     <div className={styles.modal}>
@@ -165,7 +240,7 @@ const SQLQueryEditor: React.FC = () => {
                                     <div style={{ marginLeft: '12px' }}>
                                         {db.tables?.map((table: any) => (
                                             <details key={table.id} className={styles.schemaItem}>
-                                                <summary>
+                                                <summary onClick={() => handleTableClick(db.database, table.name)}>
                                                     <ChevronRight size={14} className={styles.toggleIcon} />
                                                     <Table size={14} />
                                                     <span>{table.name}</span>
@@ -202,15 +277,15 @@ const SQLQueryEditor: React.FC = () => {
                 ) : (
                     <>
                         <div className={styles.tabBar}>
-                            {tabs.map((tab: any) => (
+                            {localTabs.map((tab: any) => (
                                 <div
                                     key={tab.id}
-                                    className={`${styles.tab} ${tab.id === activeTabId ? styles.activeTab : ''}`}
-                                    onClick={() => setActiveTab(tab.id)}
+                                    className={`${styles.tab} ${tab.id === localActiveTabId ? styles.activeTab : ''}`}
+                                    onClick={() => setActiveTabLocal(tab.id)}
                                 >
                                     <FileText size={14} />
                                     <span>{tab.name}</span>
-                                    {tabs.length > 1 && (
+                                    {localTabs.length > 1 && (
                                         <button className={styles.closeTab} onClick={(e) => closeTab(tab.id, e)}>
                                             <X size={12} />
                                         </button>
@@ -235,9 +310,14 @@ const SQLQueryEditor: React.FC = () => {
                                 <Save size={16} />
                                 Save
                             </button>
+                            <div style={{ flex: 1 }}></div>
+                            <button className={styles.toolBtn} onClick={handleSyncTabs} title="Sync tabs with server">
+                                <RefreshCw size={14} />
+                                Sync
+                            </button>
                         </div>
 
-                        <div className={styles.editorContainer}>
+                        <div className={styles.editorContainer} style={{ height: editorHeight }}>
                             <textarea
                                 ref={editorRef}
                                 className={styles.sqlInput}
@@ -262,9 +342,25 @@ SELECT * FROM users;"
                             )}
                         </div>
 
-                        <div className={styles.resultsArea}>
+                        <div
+                            className={`${styles.resizeDivider} ${isDragging ? styles.isDragging : ''}`}
+                            onMouseDown={startDragging}
+                        >
+                            <div className={styles.dividerHandle} />
+                        </div>
+
+                        <div className={`${styles.resultsArea} ${isFocusedMode ? styles.focusedResults : ''}`}>
                             <div className={styles.resultsHeader}>
                                 <span>Query Results {results.length > 0 && `(${results.length})`}</span>
+                                <div className={styles.resultsActions}>
+                                    <button
+                                        className={styles.iconBtn}
+                                        onClick={() => setIsFocusedMode(!isFocusedMode)}
+                                        title={isFocusedMode ? "Exit Focused View" : "Focused View"}
+                                    >
+                                        {isFocusedMode ? <Minimize2 size={16} /> : <Maximize2 size={16} />}
+                                    </button>
+                                </div>
                             </div>
                             {isExecuting ? (
                                 <div className={styles.emptyResults}>
@@ -277,26 +373,65 @@ SELECT * FROM users;"
                                     <p className={styles.errorText}>{queryError}</p>
                                 </div>
                             ) : results.length > 0 ? (
-                                <div className={styles.tableWrapper}>
-                                    <table className={styles.resultsTable}>
-                                        <thead>
-                                            <tr>
-                                                {results[0] && Object.keys(results[0]).map(key => (
-                                                    <th key={key}>{key}</th>
-                                                ))}
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            {results.map((row, i) => (
-                                                <tr key={i}>
-                                                    {Object.values(row).map((val: any, j) => (
-                                                        <td key={j}>{typeof val === 'object' ? JSON.stringify(val) : String(val)}</td>
+                                <>
+                                    <div className={styles.tableWrapper}>
+                                        <table className={styles.resultsTable}>
+                                            <thead>
+                                                <tr>
+                                                    {results[0] && Object.keys(results[0]).map(key => (
+                                                        <th key={key}>{key}</th>
                                                     ))}
                                                 </tr>
-                                            ))}
-                                        </tbody>
-                                    </table>
-                                </div>
+                                            </thead>
+                                            <tbody>
+                                                {paginatedResults.map((row, i) => (
+                                                    <tr key={i}>
+                                                        {Object.values(row).map((val: any, j) => (
+                                                            <td key={j}>{typeof val === 'object' ? JSON.stringify(val) : String(val)}</td>
+                                                        ))}
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <div className={styles.floatingPagination}>
+                                        <div className={styles.pageSizeSelector}>
+                                            <label htmlFor="pageSize">Rows/Page:</label>
+                                            <select
+                                                id="pageSize"
+                                                value={pageSize}
+                                                onChange={(e) => {
+                                                    setPageSize(Number(e.target.value));
+                                                    setCurrentPage(1);
+                                                }}
+                                            >
+                                                {pageSizeOptions.map(opt => (
+                                                    <option key={opt} value={opt}>{opt}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div className={styles.pageControls}>
+                                            <button
+                                                className={styles.pageBtn}
+                                                disabled={currentPage === 1}
+                                                onClick={() => setCurrentPage(p => p - 1)}
+                                            >
+                                                <ChevronLeft size={16} />
+                                            </button>
+                                            <span className={styles.pageInfo}>
+                                                Page <strong>{currentPage}</strong> of {totalPages}
+                                            </span>
+                                            <button
+                                                className={styles.pageBtn}
+                                                disabled={currentPage === totalPages || totalPages === 0}
+                                                onClick={() => setCurrentPage(p => p + 1)}
+                                            >
+                                                <ChevronRight size={16} />
+                                            </button>
+                                        </div>
+                                        <span className={styles.totalRecords}>{results.length} records</span>
+                                    </div>
+                                </>
                             ) : (
                                 <div className={styles.emptyResults}>
                                     <Database size={48} className={styles.emptyIcon} />

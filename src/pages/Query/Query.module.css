@@ -238,11 +238,11 @@
 }
 
 .editorContainer {
-    flex: 1;
     position: relative;
     background: var(--bg-main);
     overflow: hidden;
-    min-height: 200px;
+    min-height: 100px;
+    flex-shrink: 0;
 }
 
 .sqlInput {
@@ -282,12 +282,14 @@
 }
 
 .resultsArea {
-    flex: 1.2;
+    flex: 1;
     background: var(--bg-main);
     border-top: 1px solid var(--border);
     display: flex;
     flex-direction: column;
     min-width: 0;
+    overflow: hidden;
+    position: relative;
 }
 
 .resultsHeader {
@@ -296,11 +298,36 @@
     font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-muted);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.resultsActions {
+    display: flex;
+    gap: 8px;
+}
+
+.iconBtn {
+    background: transparent;
+    color: var(--text-muted);
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.iconBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-main);
 }
 
 .tableWrapper {
     flex: 1;
     overflow: auto;
+    padding-bottom: 60px;
 }
 
 .resultsTable {
@@ -318,6 +345,7 @@
     text-transform: uppercase;
     color: var(--text-muted);
     border-bottom: 1px solid var(--border);
+    z-index: 1;
 }
 
 .resultsTable td {
@@ -341,10 +369,157 @@
     opacity: 0.2;
 }
 
+.errorResults {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--error);
+    gap: 1rem;
+    padding: 2rem;
+    text-align: center;
+}
+
+.errorText {
+    max-width: 400px;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+.focusedMode {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1100;
+    background: var(--bg-main);
+}
+
+.noSelect {
+    user-select: none;
+}
+
+.resizeDivider {
+    height: 8px;
+    background: transparent;
+    cursor: row-resize;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+    transition: background 0.2s;
+}
+
+.resizeDivider:hover,
+.isDragging.resizeDivider {
+    background: var(--primary-hover);
+    opacity: 0.3;
+}
+
+.dividerHandle {
+    width: 40px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+}
+
+.focusedResults {
+    flex: 1;
+    border-top: 1px solid var(--border);
+    background: var(--bg-main);
+}
+
+.floatingPagination {
+    position: absolute;
+    bottom: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 20px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    z-index: 50;
+}
+
+.pageSizeSelector {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.pageSizeSelector select {
+    background: var(--bg-main);
+    color: var(--text-main);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 8px;
+    font-size: 0.8rem;
+    cursor: pointer;
+}
+
+.pageSizeSelector select:focus {
+    outline: none;
+    border-color: var(--primary);
+}
+
+.pageControls {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.totalRecords {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    padding-left: 10px;
+    border-left: 1px solid var(--border);
+}
+
+.pageInfo {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.pageBtn {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    color: var(--text-main);
+    padding: 6px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.pageBtn:hover:not(:disabled) {
+    border-color: var(--primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.pageBtn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+
+.pageInfo strong {
+    color: var(--text-main);
+}
+
 .scriptLibrary {
     width: 250px;
-    background: var(--surface);
-    border-left: 1px solid var(--border);
+    background: var(--bg-sidebar);
+    border-left: 1px solid var(--border-subtle);
     display: flex;
     flex-direction: column;
     flex-shrink: 0;
