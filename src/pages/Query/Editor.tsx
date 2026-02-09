@@ -1,10 +1,19 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Play, RotateCcw, Save, Search, Table, Database, ChevronRight, X, Plus, FileText, Clock, PanelLeft, PanelRight, AlertTriangle, RefreshCw, Maximize2, Minimize2, ChevronLeft } from 'lucide-react';
+import Editor from '@monaco-editor/react';
+import { AgGridReact } from 'ag-grid-react';
+import { ModuleRegistry, AllCommunityModule } from 'ag-grid-community';
+import 'ag-grid-community/styles/ag-grid.css';
+import 'ag-grid-community/styles/ag-theme-alpine.css';
 import styles from './Query.module.css';
 import { useLayout } from '../../context/LayoutContext';
 import { useSavedScripts, useSaveScript, useQueryTabs, useUpdateTabs, useExecuteQuery } from '../../hooks/useQueryData';
 import { useSchema } from '../../hooks/useSchema';
 import { useInstance } from '../../context/InstanceContext';;
+
+// Register AG Grid modules
+ModuleRegistry.registerModules([AllCommunityModule]);
+
 
 
 const SQLQueryEditor: React.FC = () => {
@@ -27,8 +36,8 @@ const SQLQueryEditor: React.FC = () => {
 
     // Results State
     const [results, setResults] = useState<any[]>([]);
+    const [columnNames, setColumnNames] = useState<string[]>([]);
     const [queryError, setQueryError] = useState<string | null>(null);
-    const [showAutocomplete, setShowAutocomplete] = useState(false);
 
     // Local Tabs State for snappy UI
     const [localTabs, setLocalTabs] = useState<any[]>([]);
@@ -54,10 +63,6 @@ const SQLQueryEditor: React.FC = () => {
 
     const activeTab = localTabs.find((t: any) => t.id === localActiveTabId);
 
-    const editorRef = useRef<HTMLTextAreaElement>(null);
-
-    const keywords = ['SELECT', 'FROM', 'WHERE', 'JOIN', 'INSERT', 'UPDATE', 'DELETE', 'LIMIT', 'GROUP BY', 'ORDER BY'];
-
     const handleExecute = () => {
         if (!activeTab) return;
         setQueryError(null);
@@ -66,7 +71,30 @@ const SQLQueryEditor: React.FC = () => {
 
         executeQuery(activeTab.query, {
             onSuccess: (data) => {
-                setResults(Array.isArray(data) ? data : (data.rows || []));
+                // Handle different response formats
+                if (data.columns && data.rows) {
+                    // Backend returns { columns: string[], rows: any[][] }
+                    setColumnNames(data.columns);
+                    // Transform array rows to objects with column names as keys
+                    const transformedRows = data.rows.map((row: any[]) => {
+                        const obj: any = {};
+                        data.columns.forEach((col: string, idx: number) => {
+                            obj[col] = row[idx];
+                        });
+                        return obj;
+                    });
+                    setResults(transformedRows);
+                } else if (Array.isArray(data)) {
+                    // Backend returns array of objects directly
+                    setResults(data);
+                    if (data.length > 0) {
+                        setColumnNames(Object.keys(data[0]));
+                    }
+                } else {
+                    // Fallback
+                    setResults([]);
+                    setColumnNames([]);
+                }
             },
             onError: (err: any) => {
                 console.error("Query failed:", err);
@@ -148,6 +176,26 @@ const SQLQueryEditor: React.FC = () => {
     // Pagination Logic
     const totalPages = Math.ceil(results.length / pageSize);
     const paginatedResults = results.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+    // AG Grid Column Definitions
+    const columnDefs = useMemo(() => {
+        if (results.length === 0) return [];
+        return Object.keys(results[0]).map(key => ({
+            field: key,
+            headerName: key,
+            sortable: true,
+            filter: true,
+            resizable: true,
+            flex: 1,
+            minWidth: 120,
+            cellRenderer: (params: any) => {
+                const value = params.value;
+                if (value === null || value === undefined) return 'null';
+                if (typeof value === 'object') return JSON.stringify(value);
+                return String(value);
+            }
+        }));
+    }, [results]);
 
     // Resize Logic
     const startDragging = (e: React.MouseEvent) => {
@@ -318,28 +366,25 @@ const SQLQueryEditor: React.FC = () => {
                         </div>
 
                         <div className={styles.editorContainer} style={{ height: editorHeight }}>
-                            <textarea
-                                ref={editorRef}
-                                className={styles.sqlInput}
+                            <Editor
+                                height="100%"
+                                defaultLanguage="sql"
                                 value={activeTab?.query || ''}
-                                onChange={(e) => handleQueryChange(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === ' ' && e.ctrlKey) setShowAutocomplete(true);
+                                onChange={(val) => handleQueryChange(val || '')}
+                                theme="vs-dark"
+                                options={{
+                                    minimap: { enabled: false },
+                                    fontSize: 14,
+                                    lineNumbers: 'on',
+                                    scrollBeyondLastLine: false,
+                                    automaticLayout: true,
+                                    tabSize: 2,
+                                    wordWrap: 'on',
+                                    suggestOnTriggerCharacters: true,
+                                    quickSuggestions: true,
+                                    padding: { top: 10, bottom: 10 }
                                 }}
-                                placeholder="-- Write your SQL query here
-SELECT * FROM users;"
-                                spellCheck={false}
                             />
-                            {showAutocomplete && (
-                                <div className={styles.autocompleteOverlay} style={{ top: 20, left: 20 }}>
-                                    {keywords.map(k => (
-                                        <div key={k} className={styles.suggestion} onClick={() => {
-                                            handleQueryChange((activeTab?.query || '') + k + ' ');
-                                            setShowAutocomplete(false);
-                                        }}>{k}</div>
-                                    ))}
-                                </div>
-                            )}
                         </div>
 
                         <div
@@ -375,24 +420,23 @@ SELECT * FROM users;"
                             ) : results.length > 0 ? (
                                 <>
                                     <div className={styles.tableWrapper}>
-                                        <table className={styles.resultsTable}>
-                                            <thead>
-                                                <tr>
-                                                    {results[0] && Object.keys(results[0]).map(key => (
-                                                        <th key={key}>{key}</th>
-                                                    ))}
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                {paginatedResults.map((row, i) => (
-                                                    <tr key={i}>
-                                                        {Object.values(row).map((val: any, j) => (
-                                                            <td key={j}>{typeof val === 'object' ? JSON.stringify(val) : String(val)}</td>
-                                                        ))}
-                                                    </tr>
-                                                ))}
-                                            </tbody>
-                                        </table>
+                                        <div className="ag-theme-alpine-dark" style={{ height: '100%', width: '100%' }}>
+                                            <AgGridReact
+                                                rowData={paginatedResults}
+                                                columnDefs={columnDefs}
+                                                defaultColDef={{
+                                                    sortable: true,
+                                                    filter: true,
+                                                    resizable: true,
+                                                    minWidth: 100
+                                                }}
+                                                pagination={false}
+                                                domLayout="normal"
+                                                suppressCellFocus={true}
+                                                enableCellTextSelection={true}
+                                                theme="legacy"
+                                            />
+                                        </div>
                                     </div>
                                     <div className={styles.floatingPagination}>
                                         <div className={styles.pageSizeSelector}>
