@@ -82,7 +82,7 @@ export const useExecuteQuery = (instanceId?: string | null) => {
 export const useVerifyCredential = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: async (payload: { instanceId: string; dbUsername: string; dbPassword: string }) => {
+        mutationFn: async (payload: { instanceId: string; dbPassword: string }) => {
             const res = await apiClient.post('/db-credentials/verify', payload);
             return res.data.data || res.data;
         },

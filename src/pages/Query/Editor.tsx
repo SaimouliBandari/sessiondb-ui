@@ -13,6 +13,7 @@ import { useSchema } from '../../hooks/useSchema';
 import styles from './Query.module.css';
 import { createSqlCompletionProvider } from './SqlAutocomplete';
 import CredentialGateModal from './CredentialGateModal';
+import { ERR_USER_CREDS_INV, ERR_USER_CREDS_REQ } from '../../constants/errorCodes';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -126,9 +127,9 @@ const SQLQueryEditor: React.FC = () => {
                 }
             },
             onError: (err: any) => {
-                const errorCode = err?.response?.data?.code || err?.response?.data?.error;
-                // Backend tells us credentials are needed — show the modal
-                if (errorCode === 'credentials_required') {
+                const errorCode = err?.response?.data?.code;
+                // Backend signals that credentials are needed for this instance
+                if (errorCode === ERR_USER_CREDS_REQ || errorCode === ERR_USER_CREDS_INV) {
                     setShowCredentialModal(true);
                     return;
                 }

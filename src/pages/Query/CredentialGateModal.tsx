@@ -11,14 +11,13 @@ interface CredentialGateModalProps {
 }
 
 const CredentialGateModal: React.FC<CredentialGateModalProps> = ({ instanceId, instanceName, onSuccess, onClose }) => {
-    const [dbUsername, setDbUsername] = useState('');
     const [dbPassword, setDbPassword] = useState('');
     const { mutate: verify, isPending, error, isError } = useVerifyCredential();
 
     const handleVerify = () => {
-        if (!dbUsername.trim()) return;
+        if (!dbPassword.trim()) return;
         verify(
-            { instanceId, dbUsername: dbUsername.trim(), dbPassword },
+            { instanceId, dbPassword },
             {
                 onSuccess: () => {
                     onSuccess();
@@ -72,29 +71,13 @@ const CredentialGateModal: React.FC<CredentialGateModalProps> = ({ instanceId, i
                 {/* form */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', marginBottom: '1.25rem' }}>
                     <div>
-                        <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>DB Username</label>
-                        <input
-                            type="text"
-                            value={dbUsername}
-                            onChange={(e) => setDbUsername(e.target.value)}
-                            placeholder="e.g. john_doe"
-                            autoFocus
-                            style={{
-                                width: '100%', padding: '10px 12px', borderRadius: '8px',
-                                border: '1px solid var(--border)', background: 'var(--bg-secondary)',
-                                color: 'var(--text)', fontSize: '0.88rem', fontFamily: 'monospace',
-                                outline: 'none', boxSizing: 'border-box'
-                            }}
-                            onKeyDown={(e) => { if (e.key === 'Enter') handleVerify(); }}
-                        />
-                    </div>
-                    <div>
                         <label style={{ fontSize: '0.78rem', color: 'var(--text-muted)', display: 'block', marginBottom: '6px' }}>DB Password</label>
                         <input
                             type="password"
                             value={dbPassword}
                             onChange={(e) => setDbPassword(e.target.value)}
                             placeholder="••••••••"
+                            autoFocus
                             style={{
                                 width: '100%', padding: '10px 12px', borderRadius: '8px',
                                 border: '1px solid var(--border)', background: 'var(--bg-secondary)',
@@ -123,7 +106,7 @@ const CredentialGateModal: React.FC<CredentialGateModalProps> = ({ instanceId, i
                     <button
                         onClick={handleVerify}
                         className="btn-primary"
-                        disabled={isPending || !dbUsername.trim()}
+                        disabled={isPending || !dbPassword.trim()}
                         style={{ padding: '8px 20px', fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '6px' }}
                     >
                         <KeyRound size={14} />

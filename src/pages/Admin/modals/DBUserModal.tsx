@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { X, Shield, Save, UserCheck, Link as LinkIcon } from 'lucide-react';
-import { DBUser, useUpdateDBUser, useLinkPlatformUser } from '../../../hooks/useDBUsers';
+import { X, Save, UserCheck, Link as LinkIcon } from 'lucide-react';
+import { DBUser, useLinkPlatformUser } from '../../../hooks/useDBUsers';
 import { useUsers } from '../../../hooks/useUsers';
 import { User } from '../../../context/AuthContext';
 import styles from '../Admin.module.css';
@@ -11,24 +11,14 @@ interface DBUserModalProps {
 }
 
 const DBUserModal: React.FC<DBUserModalProps> = ({ user, onClose }) => {
-    const [role, setRole] = useState(user.role);
     const [linkedUserId, setLinkedUserId] = useState<string>(user.linkedUserId ?? '');
-    const [customRole, setCustomRole] = useState('');
 
-    const updateDBUserMutation = useUpdateDBUser();
     const linkPlatformUserMutation = useLinkPlatformUser();
     const { data: platformUsers = [] } = useUsers();
 
-    const effectiveRole = role === 'custom' ? customRole : role;
-
     const handleSave = async () => {
         try {
-            // 1. Update role if changed
-            if (effectiveRole !== user.role) {
-                await updateDBUserMutation.mutateAsync({ id: user.id, role: effectiveRole });
-            }
-
-            // 2. Link / unlink platform user if changed
+            // Link / unlink platform user if changed
             const currentLinked = user.linkedUserId ?? '';
             if (linkedUserId !== currentLinked) {
                 await linkPlatformUserMutation.mutateAsync({
@@ -43,16 +33,7 @@ const DBUserModal: React.FC<DBUserModalProps> = ({ user, onClose }) => {
         }
     };
 
-    const isSaving = updateDBUserMutation.isPending || linkPlatformUserMutation.isPending;
-
-    const commonRoles = [
-        'read_only',
-        'read_write',
-        'db_owner',
-        'db_accessadmin',
-        'db_securityadmin',
-        'db_ddladmin',
-    ];
+    const isSaving = linkPlatformUserMutation.isPending;
 
     return (
         <div className={styles.modalOverlay}>
@@ -67,7 +48,7 @@ const DBUserModal: React.FC<DBUserModalProps> = ({ user, onClose }) => {
                 <div className={styles.modalBody}>
                     {/* Header info */}
                     <div className={styles.detailsHeaderSection}>
-                        <div className={styles.detailAvatar}>{user.username.charAt(0).toUpperCase()}</div>
+                        {/* <div className={styles.detailAvatar}>{user.username.charAt(0).toUpperCase()}</div> */}
                         <div className={styles.detailMainInfo}>
                             <h4>{user.username}</h4>
                             <p>{user.instanceName}</p>
@@ -79,37 +60,6 @@ const DBUserModal: React.FC<DBUserModalProps> = ({ user, onClose }) => {
                         </div>
                     </div>
 
-                    {/* Role selector */}
-                    <div className={styles.formGroup} style={{ marginTop: '1.5rem' }}>
-                        <label>Database Role</label>
-                        <div className={styles.inputWithAction}>
-                            <Shield
-                                size={18}
-                                className={styles.icon}
-                                style={{ position: 'absolute', left: '10px', top: '38px', color: 'var(--text-muted)' }}
-                            />
-                            <select
-                                value={role}
-                                onChange={(e) => setRole(e.target.value)}
-                                style={{ paddingLeft: '36px' }}
-                            >
-                                <option value="" disabled>Select a role</option>
-                                {commonRoles.map((r) => (
-                                    <option key={r} value={r}>{r}</option>
-                                ))}
-                                <option value="custom">Custom...</option>
-                            </select>
-                        </div>
-                        {role === 'custom' && (
-                            <input
-                                type="text"
-                                placeholder="Enter custom role name"
-                                value={customRole}
-                                onChange={(e) => setCustomRole(e.target.value)}
-                                style={{ marginTop: '0.5rem' }}
-                            />
-                        )}
-                    </div>
 
                     {/* Link Platform User */}
                     <div className={styles.formGroup} style={{ marginTop: '1.25rem' }}>

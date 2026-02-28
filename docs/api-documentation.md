@@ -10,6 +10,29 @@ Production:  https://api.sessiondb.com/v1
 Development: http://localhost:3000/v1
 ```
 
+---
+
+### Error Response Contract
+
+All error responses **must** include a `code` field from the shared internal error codes list. The frontend matches on `code` to decide UI behaviour.
+
+```json
+{ "success": false, "code": "USR001", "error": "No active credentials for this instance" }
+```
+
+**Frontend reference**: `src/constants/errorCodes.ts`
+
+| Code | Value | Description |
+|---|---|---|
+| `ERR_INVALID_REQUEST` | `REQ001` | Invalid request params |
+| `ERR_UNAUTHORIZED` | `AUTH001` | Authentication required |
+| `ERR_FORBIDDEN` | `AUTH002` | Permission denied |
+| `ERR_DB_ACCESS_DENIED` | `DB001` | Database access denied |
+| `ERR_USER_CREDS_REQ` | `USR001` | DB credentials missing (shows modal in Query Editor) |
+| `ERR_USER_CREDS_INV` | `USR002` | DB credentials invalid |
+| `ERR_NOT_FOUND` | `RES001` | Resource not found |
+| `ERR_INTERNAL_ERROR` | `SYS001` | Internal server error |
+
 ### Request/Response Format
 - **Content-Type**: `application/json`
 - **Accept**: `application/json`
@@ -707,7 +730,6 @@ interface DBPrivilege {
 ```json
 {
   "instanceId": "inst_1",
-  "dbUsername": "john_doe",
   "dbPassword": "s3cret"
 }
 ```
