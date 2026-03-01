@@ -25,4 +25,4 @@ github_community_sync:
     - 'git commit -m "chore: sync community edition [skip ci]"'
     
     # 6. Force Push to GitHub using your CI Variables
-    - git push --force https://${GH_TOKEN}@github.com/${GH_USER}/${GH_REPO}.git github-sync-temp:main
+    - git push --force https://${GH_TOKEN}@github.com/SaimouliBandari/sessiondb-ui.git github-sync-temp:main
