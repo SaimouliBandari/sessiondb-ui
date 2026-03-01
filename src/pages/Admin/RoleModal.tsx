@@ -1,20 +1,46 @@
 import React, { useState } from 'react';
 import { X, Shield, Search, Database, Table, ChevronDown, ChevronRight } from 'lucide-react';
 import { useSchema } from '../../hooks/useSchema';
-import { Role } from '../../hooks/useRoles';
-import { DBPermission } from '../../context/AuthContext'; // Need to ensure DBPermission is exported/available
+import { DBRole } from '../../hooks/useDBRoles';
+import { DBPrivilege } from '../../hooks/useDBUsers';
+import { DBPermission } from '../../context/AuthContext';
+import { useInstance } from '../../context/InstanceContext';
 import styles from './Admin.module.css';
 
 interface RoleModalProps {
-    role?: Role;
+    role?: DBRole;
     onClose: () => void;
-    onSave: (role: Role) => void;
+    onSave: (role: DBRole) => void;
 }
 
 const RoleModal: React.FC<RoleModalProps> = ({ role, onClose, onSave }) => {
+    const { currentInstanceId } = useInstance();
     const { data: schema = {} as Record<string, string[]> } = useSchema();
     const [name, setName] = useState(role?.name || '');
-    const [permissions, setPermissions] = useState<DBPermission[]>(role?.permissions || []);
+
+    // Map DBPrivilege[] to UI state DBPermission[]
+    const [permissions, setPermissions] = useState<DBPermission[]>(() => {
+        if (!role?.privileges) return [];
+        const map = new Map<string, DBPermission>();
+        role.privileges.forEach(p => {
+            const parts = p.object.split('.');
+            const db = parts.length > 1 ? parts[0] : parts[0];
+            const table = parts.length > 1 ? parts[1] : '*';
+
+            const key = `${db}.${table}`;
+            if (!map.has(key)) {
+                map.set(key, { database: db, table, privileges: [], type: 'permanent' });
+            }
+            const perm = map.get(key)!;
+            if (p.type === 'SELECT' && !perm.privileges.includes('READ')) perm.privileges.push('READ');
+            if (['INSERT', 'UPDATE'].includes(p.type) && !perm.privileges.includes('WRITE')) perm.privileges.push('WRITE');
+            if (p.type === 'DELETE' && !perm.privileges.includes('DELETE')) perm.privileges.push('DELETE');
+            if (p.type === 'EXECUTE' && !perm.privileges.includes('EXECUTE')) perm.privileges.push('EXECUTE');
+            if (p.type === 'ALL') perm.privileges = ['READ', 'WRITE', 'DELETE', 'EXECUTE'];
+        });
+        return Array.from(map.values());
+    });
+
     const [searchQuery, setSearchQuery] = useState('');
     const [expandedDBs, setExpandedDBs] = useState<string[]>(Object.keys(schema || {}).slice(0, 1));
 
@@ -65,13 +91,33 @@ const RoleModal: React.FC<RoleModalProps> = ({ role, onClose, onSave }) => {
             alert('Please provide a role name.');
             return;
         }
-        const newRole: Role = {
+
+        const privileges: DBPrivilege[] = [];
+        permissions.forEach(p => {
+            if (p.privileges.includes('READ')) {
+                privileges.push({ object: `${p.database}.${p.table}`, type: 'SELECT', grantable: false });
+            }
+            if (p.privileges.includes('WRITE')) {
+                privileges.push({ object: `${p.database}.${p.table}`, type: 'INSERT', grantable: false });
+                privileges.push({ object: `${p.database}.${p.table}`, type: 'UPDATE', grantable: false });
+            }
+            if (p.privileges.includes('DELETE')) {
+                privileges.push({ object: `${p.database}.${p.table}`, type: 'DELETE', grantable: false });
+            }
+            if (p.privileges.includes('EXECUTE')) {
+                privileges.push({ object: `${p.database}.${p.table}`, type: 'EXECUTE', grantable: false });
+            }
+        });
+
+        const newRole: Partial<DBRole> = {
             id: role?.id || Math.random().toString(36).substr(2, 9),
             name,
-            permissions,
-            userCount: role?.userCount || 0
+            dbKey: role?.dbKey || name.toLowerCase().replace(/\s+/g, '_'),
+            privileges,
+            instanceId: currentInstanceId || '',
+            isSystemRole: false
         };
-        onSave(newRole);
+        onSave(newRole as DBRole);
     };
 
     const filteredSchema = Object.entries(schema || {}).reduce((acc: Record<string, string[]>, [db, tables]) => {
@@ -89,7 +135,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ role, onClose, onSave }) => {
         <div className={styles.modalOverlay}>
             <div className={`${styles.modalContent} card`} style={{ maxWidth: '800px', width: '95%' }}>
                 <div className={styles.modalHeader}>
-                    <h3>{role ? 'Edit Role Template' : 'Create New Role Template'}</h3>
+                    <h3>{role ? 'Edit DB Role' : 'Create New DB Role'}</h3>
                     <button onClick={onClose} className={styles.closeBtn}><X size={20} /></button>
                 </div>
 
@@ -101,7 +147,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ role, onClose, onSave }) => {
                                 type="text"
                                 value={name}
                                 onChange={(e) => setName(e.target.value)}
-                                placeholder="e.g. Database Maintainer"
+                                placeholder="e.g. Read Only App"
                             />
                         </div>
                         <div className={styles.formGroup}>
@@ -170,7 +216,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ role, onClose, onSave }) => {
                         </div>
 
                         <div className={styles.selectedPerms}>
-                            <label>Template Privileges ({permissions.length})</label>
+                            <label>Role Privileges ({permissions.length})</label>
                             <div className={styles.permCardsScroll}>
                                 {permissions.map((perm) => (
                                     <div key={`${perm.database}-${perm.table}`} className={styles.permissionCardMini}>
@@ -195,7 +241,7 @@ const RoleModal: React.FC<RoleModalProps> = ({ role, onClose, onSave }) => {
                                 {permissions.length === 0 && (
                                     <div className={styles.emptySelection}>
                                         <Shield size={32} />
-                                        <p>Define base privileges for this role template.</p>
+                                        <p>Define base privileges for this database role.</p>
                                     </div>
                                 )}
                             </div>

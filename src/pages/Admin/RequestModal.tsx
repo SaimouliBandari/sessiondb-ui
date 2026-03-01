@@ -14,7 +14,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ onClose }) => {
     const [type, setType] = useState<'TEMP_USER' | 'PERM_UPGRADE'>('TEMP_USER');
     const [permissions, setPermissions] = useState<DBPermission[]>([]);
     const [searchQuery, setSearchQuery] = useState('');
-    const [expandedDBs, setExpandedDBs] = useState<string[]>(Object.keys(schema).slice(0, 1));
+    const [expandedDBs, setExpandedDBs] = useState<string[]>(Object.keys(schema || {}).slice(0, 1));
 
     const toggleDB = (db: string) => {
         setExpandedDBs(prev => prev.includes(db) ? prev.filter(d => d !== db) : [...prev, db]);
@@ -44,7 +44,7 @@ const RequestModal: React.FC<RequestModalProps> = ({ onClose }) => {
         onClose();
     };
 
-    const filteredSchema = Object.entries(schema).reduce((acc, [db, tables]) => {
+    const filteredSchema = Object.entries(schema || {}).reduce((acc, [db, tables]) => {
         const matchedTables = (tables as string[]).filter(t =>
             db.toLowerCase().includes(searchQuery.toLowerCase()) ||
             t.toLowerCase().includes(searchQuery.toLowerCase())

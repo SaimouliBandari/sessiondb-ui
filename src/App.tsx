@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Navigate, useLocation, Outlet } from 'react-router-dom';
 import Layout from './components/Layout/Layout';
 import QueryEditor from './pages/Query/Editor';
 import UserManagement from './pages/Admin/Users';
@@ -26,6 +26,20 @@ const PrivateRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => 
     return <>{children}</>;
 };
 
+const RoleProtectedRoute: React.FC<{ children: React.ReactNode, allowedRoles: string[] }> = ({ children, allowedRoles }) => {
+    const { user } = useAuth();
+
+    const currentRoleName = typeof user?.role === 'string'
+        ? user.role.toLowerCase()
+        : user?.role?.dbKey?.toLowerCase() || 'viewer';
+
+    if (!allowedRoles.includes(currentRoleName)) {
+        return <Navigate to="/query" replace />;
+    }
+
+    return <>{children}</>;
+};
+
 import { ThemeProvider } from './context/ThemeContext';
 
 const App: React.FC = () => {
@@ -36,14 +50,18 @@ const App: React.FC = () => {
                 <Route path="/" element={<PrivateRoute><Layout /></PrivateRoute>}>
                     <Route index element={<Navigate to="/query" replace />} />
                     <Route path="query" element={<QueryEditor />} />
-                    <Route path="admin">
+                    <Route path="admin" element={<RoleProtectedRoute allowedRoles={['super_admin', 'maintainer']}><Outlet /></RoleProtectedRoute>}>
                         <Route path="users" element={<UserManagement />} />
                         <Route path="roles" element={<RoleManagement />} />
                         <Route path="approvals" element={<Approvals />} />
                         <Route path="instances" element={<InstanceManagement />} />
                         <Route path="settings" element={<Settings />} />
                     </Route>
-                    <Route path="logs" element={<AuditLogs />} />
+                    <Route path="logs" element={
+                        <RoleProtectedRoute allowedRoles={['super_admin', 'maintainer']}>
+                            <AuditLogs />
+                        </RoleProtectedRoute>
+                    } />
                 </Route>
                 <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>

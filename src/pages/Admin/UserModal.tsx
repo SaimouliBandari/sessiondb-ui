@@ -285,7 +285,7 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
                                             {['READ', 'WRITE', 'DELETE', 'EXECUTE'].map(p => (
                                                 <button
                                                     key={`${perm.database}-${perm.table}-${p}`}
-                                                    className={perm.privileges.includes(p) ? styles.privBtnActive : styles.privBtn}
+                                                    className={perm.privileges.includes(p as any) ? styles.privBtnActive : styles.privBtn}
                                                     onClick={() => updatePermissionPrivileges(perm.database, perm.table, p as any)}
                                                 >
                                                     {p}

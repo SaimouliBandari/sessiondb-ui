@@ -27,30 +27,33 @@ const Sidebar: React.FC = () => {
     };
 
     const allMenuItems = [
-        { name: 'Query Editor', path: '/query', icon: Terminal, requiredPrivilege: 'query_editor' },
+        { name: 'Query Editor', path: '/query', icon: Terminal, allowedRoles: ['super_admin', 'maintainer', 'viewer'] },
         {
-            name: 'Admin Portal', path: '/admin', isParent: true, children: [
-                { name: 'Users', path: '/admin/users', icon: Users, requiredPrivilege: 'admin_users' },
-                { name: 'Roles', path: '/admin/roles', icon: ShieldCheck, requiredPrivilege: 'admin_roles' },
-                { name: 'Approvals', path: '/admin/approvals', icon: ClipboardCheck, requiredPrivilege: 'admin_approvals' },
-                { name: 'Instances', path: '/admin/instances', icon: DatabaseZap, requiredPrivilege: 'admin_instances' },
+            name: 'Admin Portal', path: '/admin', isParent: true, allowedRoles: ['super_admin', 'maintainer'], children: [
+                { name: 'Users', path: '/admin/users', icon: Users, allowedRoles: ['super_admin', 'maintainer'] },
+                { name: 'Roles', path: '/admin/roles', icon: ShieldCheck, allowedRoles: ['super_admin', 'maintainer'] },
+                { name: 'Approvals', path: '/admin/approvals', icon: ClipboardCheck, allowedRoles: ['super_admin', 'maintainer'] },
+                { name: 'Instances', path: '/admin/instances', icon: DatabaseZap, allowedRoles: ['super_admin', 'maintainer'] },
             ]
         },
-        { name: 'Audit Logs', path: '/logs', icon: History, requiredPrivilege: 'audit_logs' },
+        { name: 'Audit Logs', path: '/logs', icon: History, allowedRoles: ['super_admin', 'maintainer'] },
     ];
 
-    const privileges = currentUser?.platformPrivileges;
-    const hasPrivilege = (key?: string) => !privileges || !key || privileges.includes(key);
+    const currentRoleName = typeof currentUser?.role === 'string'
+        ? currentUser.role.toLowerCase()
+        : currentUser?.role?.dbKey?.toLowerCase() || 'viewer';
 
-    // Filter menu items based on platform privileges
+    const hasAccess = (allowedRoles?: string[]) => !allowedRoles || allowedRoles.includes(currentRoleName);
+
+    // Filter menu items based on static roles
     const menuItems = allMenuItems
         .map(item => {
             if (item.isParent && item.children) {
-                const filteredChildren = item.children.filter(c => hasPrivilege(c.requiredPrivilege));
-                if (filteredChildren.length === 0) return null;
+                const filteredChildren = item.children.filter(c => hasAccess(c.allowedRoles));
+                if (filteredChildren.length === 0 || !hasAccess(item.allowedRoles)) return null;
                 return { ...item, children: filteredChildren };
             }
-            return hasPrivilege(item.requiredPrivilege) ? item : null;
+            return hasAccess(item.allowedRoles) ? item : null;
         })
         .filter(Boolean) as typeof allMenuItems;
 

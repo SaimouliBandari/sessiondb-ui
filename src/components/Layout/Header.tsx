@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Bell, Settings, ChevronDown, Check, Server } from 'lucide-react';
+import { Search, Bell, ChevronDown, Check, Server } from 'lucide-react';
 import styles from './Layout.module.css';
 import { useInstance } from '../../context/InstanceContext';
 
