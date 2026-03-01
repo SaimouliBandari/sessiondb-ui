@@ -1,0 +1,28 @@
+stages:
+  - sync
+
+github_community_sync:
+  stage: sync
+  image: alpine:latest
+  only:
+    - main
+  before_script:
+    - apk add --no-cache git openssh
+    - git config --global user.name "GitLab CI Bot"
+    - git config --global user.email "ci-bot@sessiondb.com"
+  script:
+    # 1. Create temporary sync branch
+    - git checkout -b github-sync-temp
+    
+    # 2. Swap to the Community Gitignore
+    - mv .gitignore.community .gitignore
+        
+    # 4. Scrub Pro Frontend (Ref: src/features/Premium)
+    - rm -rf src/features/Premium/
+    - git rm -r --cached src/features/Premium/ || true
+    
+    # 5. Commit with FIXED syntax (Single quotes around the whole command)
+    - 'git commit -m "chore: sync community edition [skip ci]"'
+    
+    # 6. Force Push to GitHub using your CI Variables
+    - git push --force https://${GH_TOKEN}@github.com/SaimouliBandari/sessiondb-ui.git github-sync-temp:main
