@@ -42,3 +42,13 @@ Thumbs.db
 .gemini/
 .agent/
 brain/
+
+# ==========================================
+# OPEN CORE EXCLUSIONS FOR DOWNSTREAM EXPORT
+# ==========================================
+# This file is used by our sync script (GitLab -> GitHub).
+# The script renames this file to .gitignore, effectively stripping
+# our proprietary features from the public Community representation.
+
+src/features/Premium/
+src/features/premium/
