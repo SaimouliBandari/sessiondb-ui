@@ -44,7 +44,10 @@ publish_community_docker:
     - echo "Publishing >> Tagged Release $IMAGE_TAG"
 
     # --- UI BUILD (Frontend First) ---
-    - docker build -t $DOCKER_HUB_USER/sessiondb-ui:$IMAGE_TAG ./client
-    - docker tag $DOCKER_HUB_USER/sessiondb-ui:$IMAGE_TAG $DOCKER_HUB_USER/sessiondb-ui:latest
+    # - docker build -t $DOCKER_HUB_USER/sessiondb-ui:$IMAGE_TAG ./client
+    # - docker tag $DOCKER_HUB_USER/sessiondb-ui:$IMAGE_TAG $DOCKER_HUB_USER/sessiondb-ui:latest
+    # - docker push $DOCKER_HUB_USER/sessiondb-ui:$IMAGE_TAG
+    # - docker push $DOCKER_HUB_USER/sessiondb-ui:latest
+    - echo "Building UI..."
+    - docker build -t $DOCKER_HUB_USER/sessiondb-ui:$IMAGE_TAG .
     - docker push $DOCKER_HUB_USER/sessiondb-ui:$IMAGE_TAG
-    - docker push $DOCKER_HUB_USER/sessiondb-ui:latest
