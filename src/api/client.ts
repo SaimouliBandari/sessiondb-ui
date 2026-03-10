@@ -39,3 +39,5 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+/** Named export for plan/docs consistency */
+export const api = apiClient;

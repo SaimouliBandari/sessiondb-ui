@@ -11,6 +11,8 @@ export interface DBPermission {
     privileges: ('READ' | 'WRITE' | 'DELETE' | 'EXECUTE')[];
     type: 'permanent' | 'temp' | 'expiring';
     expiry?: string;
+    /** Phase 2: instance-scoped data access; required by backend for data permissions */
+    instanceId?: string;
 }
 
 export interface DBInstance {

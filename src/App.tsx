@@ -8,6 +8,7 @@ import RoleManagement from './pages/Admin/Roles';
 import Approvals from './pages/Admin/Approvals';
 import InstanceManagement from './pages/Admin/Instances';
 import Settings from './pages/Admin/Settings';
+import SettingsAIConfig from './pages/Admin/SettingsAIConfig';
 import AuditLogs from './pages/Logs/AuditLogs';
 import Login from './pages/Login/Login';
 import { useAuth } from './context/AuthContext';
@@ -71,6 +72,7 @@ const App: React.FC = () => {
                                 </PermissionGate>
                             } />
                             <Route path="settings" element={<Settings />} />
+                            <Route path="ai-config" element={<SettingsAIConfig />} />
 
                             {/* Pro Admin Features */}
                             <Route path="insights" element={

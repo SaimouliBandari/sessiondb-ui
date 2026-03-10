@@ -10,12 +10,13 @@ import {
     History,
     LogOut,
     ChevronLeft,
-    DatabaseZap
+    DatabaseZap,
+    Bot,
+    Lock
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useLayout } from '../../context/LayoutContext';
 import { useAccess } from '../../context/AccessContext';
-import { Lock } from 'lucide-react';
 import styles from './Layout.module.css';
 
 const Sidebar: React.FC = () => {
@@ -39,6 +40,7 @@ const Sidebar: React.FC = () => {
                 { name: 'Roles', path: '/admin/roles', icon: ShieldCheck, requiredPermission: 'roles:manage' },
                 { name: 'Approvals', path: '/admin/approvals', icon: ClipboardCheck, requiredPermission: 'approvals:manage' },
                 { name: 'Instances', path: '/admin/instances', icon: DatabaseZap, requiredPermission: 'instances:manage' },
+                { name: 'AI Config', path: '/admin/ai-config', icon: Bot },
                 { name: 'DB Metrics', path: '/admin/metrics', icon: DatabaseZap, requiredFeature: 'db_metrics' },
                 { name: 'Creds Expiry', path: '/admin/expiry', icon: ShieldCheck, requiredFeature: 'auto_creds_expiry' },
                 { name: 'TTL Access', path: '/admin/ttl', icon: ClipboardCheck, requiredFeature: 'ttl_table_access' },
@@ -80,7 +82,7 @@ const Sidebar: React.FC = () => {
 
             <div className={styles.logoArea}>
                 <Database size={24} className={styles.logoIcon} />
-                <span className={`${styles.logoText} ${isSidebarCollapsed ? styles.collapsedText : ''}`}>SessionDB</span>
+                <span className={styles.logoText}>SessionDB</span>
             </div>
             <nav className={styles.nav}>
                 {menuItems.map((item) => {
@@ -105,10 +107,17 @@ const Sidebar: React.FC = () => {
                                                         `${styles.navLink} ${isActive ? styles.active : ''} ${isSidebarCollapsed ? styles.collapsedLink : ''}`
                                                     }
                                                 >
-                                                    <ChildIcon size={18} />
-                                                    <span className={isSidebarCollapsed ? styles.collapsedText : ''} style={{ display: 'flex', alignItems: 'center' }}>
+                                                    <span className={styles.navLinkIconWrap}>
+                                                        <ChildIcon size={18} />
+                                                        {isSidebarCollapsed && isLocked && (
+                                                            <span className={styles.lockBadge} aria-hidden>
+                                                                <Lock size={6} />
+                                                            </span>
+                                                        )}
+                                                    </span>
+                                                    <span className={styles.navLinkLabel}>
                                                         {child.name}
-                                                        {isLocked && <Lock size={12} style={{ marginLeft: '6px', color: 'var(--text-muted)' }} />}
+                                                        {!isSidebarCollapsed && isLocked && <Lock size={12} style={{ color: 'var(--text-muted)' }} />}
                                                     </span>
                                                 </NavLink>
                                             );
@@ -126,10 +135,19 @@ const Sidebar: React.FC = () => {
                                                 `${styles.navLink} ${isActive ? styles.active : ''} ${isSidebarCollapsed ? styles.collapsedLink : ''}`
                                             }
                                         >
-                                            {Icon && <Icon size={18} />}
-                                            <span className={isSidebarCollapsed ? styles.collapsedText : ''} style={{ display: 'flex', alignItems: 'center' }}>
+                                            {Icon && (
+                                                <span className={styles.navLinkIconWrap}>
+                                                    <Icon size={18} />
+                                                    {isSidebarCollapsed && isLocked && (
+                                                        <span className={styles.lockBadge} aria-hidden>
+                                                            <Lock size={6} />
+                                                        </span>
+                                                    )}
+                                                </span>
+                                            )}
+                                            <span className={styles.navLinkLabel}>
                                                 {item.name}
-                                                {isLocked && <Lock size={12} style={{ marginLeft: '6px', color: 'var(--text-muted)' }} />}
+                                                {!isSidebarCollapsed && isLocked && <Lock size={12} style={{ color: 'var(--text-muted)' }} />}
                                             </span>
                                         </NavLink>
                                     );
