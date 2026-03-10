@@ -245,6 +245,27 @@ For complete API reference, see [API Documentation](./api-documentation.md)
 
 ---
 
+## 🔌 Backend integration (UI ↔ API)
+
+This UI integrates with the SessionDB backend API. For the canonical contract (base URL, auth, request/response shapes, error codes), see the **backend** repo’s `docs/frontend-integration.md` (base URL, auth, endpoints, error shapes).
+
+### Auth and base URL
+- Base URL: set via `VITE_API_URL` (or runtime `_env_.API_URL`); default `http://localhost:8080/v1`.
+- Auth: JWT in `Authorization: Bearer <token>`; token is stored in `localStorage` under `sdb_token`. On 401, the client clears the token and redirects to login.
+
+### Phase 2 — Access engine (data access)
+- **403 with code `AUTH002`**: “No data access to this instance.” The user has no data-level permission for the selected instance. The query execute flow shows a user-friendly message and suggests asking an admin to grant permissions.
+- Data-level permissions must include `instanceId` (target instance UUID) when creating/updating users (see User management payloads).
+
+### Phase 3 — AI (BYOK)
+- **Endpoints**: `GET/PUT /ai/config`, `POST /ai/generate-sql`, `POST /ai/explain`. See the backend’s `docs/frontend-integration.md` for request/response shapes.
+- AI features (“Generate with AI”, “Explain”) require the user to configure an AI provider first via **Admin → AI Config** (BYOK: user’s own API key). If not configured, the UI shows a message and links to the AI config page.
+
+### Future phases
+When new backend phases (e.g. Session Engine, Alerting, Reporting) are completed, add corresponding API client functions (e.g. `src/api/session.ts`, `src/api/alerts.ts`) and feature screens following the same patterns: shared `api` client, `getApiErrorMessage` / `getApiErrorCode`, and feature-specific routes and modals.
+
+---
+
 ## 🚦 Getting Started with Development
 
 ### Prerequisites

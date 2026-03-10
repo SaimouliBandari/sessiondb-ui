@@ -56,7 +56,9 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
         if (isTableSelected(db, table)) {
             setPermissions(prev => prev.filter(p => !(p.database === db && p.table === table)));
         } else {
-            setPermissions(prev => [...prev, { database: db, table: table, privileges: ['READ'], type: 'permanent' }]);
+            const perm: DBPermission = { database: db, table, privileges: ['READ'], type: 'permanent' };
+            if (currentInstanceId) perm.instanceId = currentInstanceId;
+            setPermissions(prev => [...prev, perm]);
         }
     };
 
@@ -70,11 +72,13 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
             // Deselect all
             setPermissions(prev => prev.filter(p => p.database !== dbName));
         } else {
-            // Select all (only those not already selected)
-            const newPerms = tables
+            const newPerms: DBPermission[] = tables
                 .filter((t: any) => !isTableSelected(dbName, t.name))
-                .map((t: any) => ({ database: dbName, table: t.name, privileges: ['READ'] as ('READ' | 'WRITE' | 'DELETE' | 'EXECUTE')[], type: 'permanent' as const }));
-
+                .map((t: any) => {
+                    const p: DBPermission = { database: dbName, table: t.name, privileges: ['READ'], type: 'permanent' };
+                    if (currentInstanceId) p.instanceId = currentInstanceId;
+                    return p;
+                });
             setPermissions(prev => [...prev, ...newPerms]);
         }
     };
@@ -124,6 +128,9 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
     };
 
     const handleSave = () => {
+        const permsWithInstance: DBPermission[] = currentInstanceId
+            ? permissions.map(p => ({ ...p, instanceId: currentInstanceId }))
+            : permissions;
         const newUser: User = {
             id: user?.id || Math.random().toString(36).substr(2, 9),
             name,
@@ -132,7 +139,7 @@ const UserModal: React.FC<UserModalProps> = ({ user, onClose, onSave }) => {
             status: user?.status || 'active',
             isSessionBased,
             lastLogin: user?.lastLogin || 'Never',
-            permissions,
+            permissions: permsWithInstance,
             savedScripts: user?.savedScripts || [],
             queryTabs: user?.queryTabs || []
         };

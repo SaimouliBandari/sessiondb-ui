@@ -5,7 +5,7 @@ import 'ag-grid-community/styles/ag-grid.css';
 import { AgGridReact } from 'ag-grid-react';
 import React, { useEffect, useMemo, useState } from 'react';
 // import 'ag-grid-community/styles/ag-theme-alpine.css'; // Removed to use legacy theme via prop
-import { AlertTriangle, ChevronLeft, ChevronRight, Clock, Database, FileText, Maximize2, MessageSquareOff, Minimize2, PanelLeft, PanelRight, Play, Plus, RefreshCw, RotateCcw, Save, Search, Table, X } from 'lucide-react';
+import { AlertTriangle, ChevronLeft, ChevronRight, Clock, Database, FileText, HelpCircle, Maximize2, MessageSquareOff, Minimize2, PanelLeft, PanelRight, Play, Plus, RefreshCw, RotateCcw, Save, Search, Sparkles, Table, X } from 'lucide-react';
 import { useInstance } from '../../context/InstanceContext';
 import { useLayout } from '../../context/LayoutContext';
 import { useExecuteQuery, useQueryTabs, useSavedScripts, useSaveScript, useUpdateTabs } from '../../hooks/useQueryData';
@@ -14,7 +14,12 @@ import { useSchema } from '../../hooks/useSchema';
 import styles from './Query.module.css';
 import { createSqlCompletionProvider } from './SqlAutocomplete';
 import CredentialGateModal from './CredentialGateModal';
-import { ERR_USER_CREDS_INV, ERR_USER_CREDS_REQ } from '../../constants/errorCodes';
+import { ERR_USER_CREDS_INV, ERR_USER_CREDS_REQ, ERR_FORBIDDEN } from '../../constants/errorCodes';
+import { getApiErrorMessage, getApiErrorCode } from '../../api/errors';
+import { getAIConfig, generateSQL, explainQuery } from '../../api/ai';
+import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
 
 // Register AG Grid modules
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -30,6 +35,7 @@ const SQLQueryEditor: React.FC = () => {
     const { mutate: updateTabs } = useUpdateTabs();
     const { mutate: executeQuery, isPending: isExecuting } = useExecuteQuery(currentInstanceId);
     const { data: schemaData, isLoading: schemaLoading, refetch: refetchSchema, isRefetching: isRefetchingSchema } = useSchema(currentInstanceId);
+    const { data: aiConfig } = useQuery({ queryKey: ['aiConfig'], queryFn: getAIConfig });
 
     // Use a ref to store schema data so the Monaco completion provider can access the latest value
     // without suffering from stale closures since onMount only runs once.
@@ -50,6 +56,14 @@ const SQLQueryEditor: React.FC = () => {
     const [results, setResults] = useState<any[]>([]);
     const [queryError, setQueryError] = useState<string | null>(null);
     const [showCredentialModal, setShowCredentialModal] = useState(false);
+    const [showGenerateModal, setShowGenerateModal] = useState(false);
+    const [generatePrompt, setGeneratePrompt] = useState('');
+    const [generateError, setGenerateError] = useState<string | null>(null);
+    const [generatePending, setGeneratePending] = useState(false);
+    const [showExplainModal, setShowExplainModal] = useState(false);
+    const [explainResult, setExplainResult] = useState<string | null>(null);
+    const [explainError, setExplainError] = useState<string | null>(null);
+    const [explainPending, setExplainPending] = useState(false);
 
     // Local Tabs State for snappy UI
     const [localTabs, setLocalTabs] = useState<any[]>([]);
@@ -127,15 +141,20 @@ const SQLQueryEditor: React.FC = () => {
                     setResults([]);
                 }
             },
-            onError: (err: any) => {
-                const errorCode = err?.response?.data?.code;
+            onError: (err: unknown) => {
+                const errorCode = getApiErrorCode(err);
                 // Backend signals that credentials are needed for this instance
                 if (errorCode === ERR_USER_CREDS_REQ || errorCode === ERR_USER_CREDS_INV) {
                     setShowCredentialModal(true);
                     return;
                 }
+                // Phase 2: no data access to this instance
+                if (axios.isAxiosError(err) && err.response?.status === 403 && errorCode === ERR_FORBIDDEN) {
+                    setQueryError("You don't have data access to this instance. Ask an admin to grant you permissions.");
+                    return;
+                }
                 console.error("Query failed:", err);
-                setQueryError(err?.response?.data?.error || err?.message || "An unknown error occurred while executing the query.");
+                setQueryError(getApiErrorMessage(err) || "An unknown error occurred while executing the query.");
             }
         });
     };
@@ -265,6 +284,59 @@ const SQLQueryEditor: React.FC = () => {
         };
     }, [isDragging]);
 
+    const handleGenerateWithAIClick = () => {
+        if (!aiConfig?.configured) {
+            setGenerateError('Configure your AI provider in Settings → AI Config first.');
+            setShowGenerateModal(true);
+            return;
+        }
+        setGenerateError(null);
+        setGeneratePrompt('');
+        setShowGenerateModal(true);
+    };
+
+    const handleGenerateSubmit = async () => {
+        if (!currentInstanceId || !generatePrompt.trim() || !aiConfig?.configured) return;
+        setGenerateError(null);
+        setGeneratePending(true);
+        try {
+            const data = await generateSQL(currentInstanceId, generatePrompt.trim());
+            if (activeTab) {
+                handleQueryChange(data.sql);
+            }
+            setShowGenerateModal(false);
+            if (data.requiresApproval) {
+                setQueryError('This query may require approval before running.');
+            }
+        } catch (err) {
+            setGenerateError(getApiErrorMessage(err));
+        } finally {
+            setGeneratePending(false);
+        }
+    };
+
+    const handleExplainClick = async () => {
+        const queryText = activeTab?.query?.trim();
+        if (!queryText) return;
+        if (!aiConfig?.configured) {
+            setExplainError('Configure your AI provider in Settings → AI Config first.');
+            setShowExplainModal(true);
+            return;
+        }
+        setExplainError(null);
+        setExplainResult(null);
+        setShowExplainModal(true);
+        setExplainPending(true);
+        try {
+            const data = await explainQuery(queryText);
+            setExplainResult(data.explanation);
+        } catch (err) {
+            setExplainError(getApiErrorMessage(err));
+        } finally {
+            setExplainPending(false);
+        }
+    };
+
     const handleRemoveComments = () => {
         if (!activeTab || !activeTab.query) {
             console.log('No query to process');
@@ -328,6 +400,75 @@ const SQLQueryEditor: React.FC = () => {
                         <div className={styles.modalActions}>
                             <button className={`${styles.modalBtn} ${styles.cancelBtn} `} onClick={() => setIsSaveModalOpen(false)}>Cancel</button>
                             <button className={`${styles.modalBtn} ${styles.confirmBtn} `} onClick={handleSaveConfirm}>Save Script</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showGenerateModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal}>
+                        <h3><Sparkles size={18} style={{ verticalAlign: 'middle', marginRight: '8px' }} />Generate SQL with AI</h3>
+                        {!aiConfig?.configured ? (
+                            <p style={{ color: 'var(--text-muted)', marginBottom: '12px' }}>
+                                Configure your AI provider in <Link to="/admin/ai-config">Settings → AI Config</Link> to use this feature.
+                            </p>
+                        ) : (
+                            <>
+                                <p style={{ color: 'var(--text-muted)', marginBottom: '8px', fontSize: '13px' }}>
+                                    Instance: <strong>{currentInstance?.name ?? currentInstanceId ?? '—'}</strong>
+                                </p>
+                                <textarea
+                                    value={generatePrompt}
+                                    onChange={(e) => setGeneratePrompt(e.target.value)}
+                                    placeholder="Describe what you want to query in plain language..."
+                                    rows={4}
+                                    style={{
+                                        width: '100%',
+                                        padding: '10px',
+                                        borderRadius: '8px',
+                                        border: '1px solid var(--border-subtle)',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        color: 'var(--text-main)',
+                                        resize: 'vertical',
+                                        marginBottom: '12px'
+                                    }}
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Escape') setShowGenerateModal(false);
+                                    }}
+                                />
+                                {generateError && <p style={{ color: 'var(--error)', marginBottom: '8px', fontSize: '13px' }}>{generateError}</p>}
+                            </>
+                        )}
+                        <div className={styles.modalActions}>
+                            <button className={`${styles.modalBtn} ${styles.cancelBtn}`} onClick={() => { setShowGenerateModal(false); setGenerateError(null); }}>Cancel</button>
+                            {aiConfig?.configured && (
+                                <button className={`${styles.modalBtn} ${styles.confirmBtn}`} onClick={handleGenerateSubmit} disabled={generatePending || !generatePrompt.trim()}>
+                                    {generatePending ? 'Generating...' : 'Generate'}
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showExplainModal && (
+                <div className={styles.modalOverlay}>
+                    <div className={styles.modal} style={{ maxWidth: '480px' }}>
+                        <h3><HelpCircle size={18} style={{ verticalAlign: 'middle', marginRight: '8px' }} />Explain query</h3>
+                        {!aiConfig?.configured ? (
+                            <p style={{ color: 'var(--text-muted)', marginBottom: '12px' }}>
+                                Configure your AI provider in <Link to="/admin/ai-config">Settings → AI Config</Link> to use this feature.
+                            </p>
+                        ) : explainPending ? (
+                            <p style={{ color: 'var(--text-muted)' }}>Getting explanation...</p>
+                        ) : explainError ? (
+                            <p style={{ color: 'var(--error)' }}>{explainError}</p>
+                        ) : explainResult ? (
+                            <p style={{ whiteSpace: 'pre-wrap', lineHeight: 1.5, marginBottom: '12px' }}>{explainResult}</p>
+                        ) : null}
+                        <div className={styles.modalActions}>
+                            <button className={`${styles.modalBtn} ${styles.confirmBtn}`} onClick={() => { setShowExplainModal(false); setExplainResult(null); setExplainError(null); }}>Close</button>
                         </div>
                     </div>
                 </div>
@@ -441,6 +582,14 @@ const SQLQueryEditor: React.FC = () => {
                             <button className={styles.toolBtn} onClick={handleRemoveComments} disabled={!activeTab} title="Remove Comments">
                                 <MessageSquareOff size={16} />
                                 No Comments
+                            </button>
+                            <button className={styles.toolBtn} onClick={handleGenerateWithAIClick} title="Generate SQL with AI">
+                                <Sparkles size={16} />
+                                Generate with AI
+                            </button>
+                            <button className={styles.toolBtn} onClick={handleExplainClick} disabled={!activeTab?.query?.trim()} title="Explain this query">
+                                <HelpCircle size={16} />
+                                Explain
                             </button>
                             <div style={{ flex: 1 }}></div>
                             <button className={styles.toolBtn} onClick={handleSyncTabs} title="Sync tabs with server">
